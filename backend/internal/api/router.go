@@ -44,18 +44,17 @@ func NewRouter(cfg *config.Config, db *sql.DB) *mux.Router {
 	inventoryHandler := handlers.NewInventoryHandler(inventoryService, cfg)
 	organisationHandler := handlers.NewOrganisationHandler(organisationService, cfg)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService, cfg)
+	uploadHandler := handlers.NewUploadHandler(cfg)
 
-	// PUBLIC ROUTES (NO AUTH REQUIRED)
-	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
-	router.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
-
-	// PROTECTED ROUTES (AUTH REQUIRED)
+	// FOR PROTECTED ROUTES
 	protected := router.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware(cfg))
 
 	// AUTH ROUTES
-	protected.HandleFunc("/auth/logout", authHandler.Logout).Methods("POST")
-	protected.HandleFunc("/auth/refresh", authHandler.RefreshToken).Methods("POST")
+	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")   // UNPROTECTED
+	router.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")         // UNPROTECTED
+	protected.HandleFunc("/auth/logout", authHandler.Logout).Methods("POST")        // PROTECTED
+	protected.HandleFunc("/auth/refresh", authHandler.RefreshToken).Methods("POST") // PROTECTED
 
 	// USER ROUTES
 	protected.HandleFunc("/users/profile", userHandler.GetProfile).Methods("GET")
@@ -100,6 +99,10 @@ func NewRouter(cfg *config.Config, db *sql.DB) *mux.Router {
 	protected.HandleFunc("/analytics/donor-impact", analyticsHandler.GetDonorImpact).Methods("GET")
 	protected.HandleFunc("/analytics/org-performance", analyticsHandler.GetOrgPerformance).Methods("GET")
 	protected.HandleFunc("/analytics/system-overview", analyticsHandler.GetSystemOverview).Methods("GET")
+
+	// UPLOAD ROUTES
+	protected.HandleFunc("/uploads/images", uploadHandler.UploadImages).Methods("POST")                                                       // PROTECTED
+	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.FileUpload.UploadDir)))).Methods("GET") // UNPROTECTED
 
 	// HEALTH CHECK
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
