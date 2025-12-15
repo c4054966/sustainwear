@@ -1,0 +1,35 @@
+[SERVER]
+host = "localhost"
+port = "8080"
+
+[DATABASE]
+# Options: "sqlite3", "postgres", "mysql"
+driver = "sqlite3"
+
+# SQLite configuration (used when driver = "sqlite3")
+path = "./sustainwear.db"
+
+# PostgreSQL/MySQL configuration (used when driver = "postgres" or "mysql")
+host = "localhost"
+port = "5432"
+user = "postgres"
+password = "password"
+dbname = "sustainwear"
+sslmode = "disable"  # postgres only: "disable", "require", "verify-full"
+
+[SECURITY]
+jwt_secret = "secret-key"
+jwt_expiry_hours = 24
+
+[CORS]
+allowed_origins = ["http://localhost:3000"]
+
+# I HAVENT DONE THIS BIT YET
+[FILEUPLOAD]
+upload_dir = "./uploads"
+max_upload_size_mb = 10
+allowed_file_types = [".jpg", ".png", ".jpeg", ".webp"]
+
+[PAGINATION]
+default_page_size = 20
+max_page_size = 100
