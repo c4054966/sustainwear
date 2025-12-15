@@ -24,7 +24,6 @@ jwt_expiry_hours = 24
 [CORS]
 allowed_origins = ["http://localhost:3000"]
 
-# I HAVENT DONE THIS BIT YET
 [FILEUPLOAD]
 upload_dir = "./uploads"
 max_upload_size_mb = 10
