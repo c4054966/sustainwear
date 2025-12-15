@@ -11,7 +11,7 @@ import (
 
 func main() {
 	// LOAD CONFIGURATION
-	cfg, err := config.Load("internal/config/config.toml")
+	cfg, err := config.Load("config.toml")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
@@ -30,8 +30,6 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer db.Close()
-
-	log.Printf("Database initialized: %s", cfg.Database.Path)
 
 	// INITIALIZE ROUTER
 	router := api.NewRouter(cfg, db.DB)

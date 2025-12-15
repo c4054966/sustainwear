@@ -3,10 +3,10 @@ host = "localhost"
 port = "8080"
 
 [DATABASE]
-# Options: "sqlite3", "postgres", "mysql"
-driver = "sqlite3"
+# Options: "sqlite", "postgres", "mysql"
+driver = "sqlite"
 
-# SQLite configuration (used when driver = "sqlite3")
+# SQLite configuration (used when driver = "sqlite")
 path = "./sustainwear.db"
 
 # PostgreSQL/MySQL configuration (used when driver = "postgres" or "mysql")

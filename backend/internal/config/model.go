@@ -15,7 +15,7 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Driver string `toml:"driver"` // "sqlite3", "postgres", or "mysql"
+	Driver string `toml:"driver"` // "sqlite", "postgres", or "mysql"
 
 	// SQLITE
 	Path string `toml:"path"`
@@ -58,7 +58,7 @@ func DefaultConfig() *Config {
 			Port: "8080",
 		},
 		Database: DatabaseConfig{
-			Driver:   "sqlite3",
+			Driver:   "sqlite",
 			Path:     "./sustainwear.db",
 			Host:     "localhost",
 			Port:     "5432",
