@@ -22,6 +22,7 @@ func NewUploadHandler(cfg *config.Config) *UploadHandler {
 // UPLOAD IMAGES ENDPOINT
 func (h *UploadHandler) UploadImages(w http.ResponseWriter, r *http.Request) {
 	// PARSES MULTIPART FORM
+	// 32MB INMEMORY BUFFER LIMIT
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		log.Printf("UPLOAD: Failed to parse multipart form: %v", err)
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)

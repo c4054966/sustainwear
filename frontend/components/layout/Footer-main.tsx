@@ -25,7 +25,7 @@ export default function Header() {
                             </ul>
                         </div>
                         <div className="footerContent">
-                            <h3>Adress</h3>
+                            <h3>Address</h3>
                             <ul>
                                 <li><p>Cantor College</p></li>
                                 <li><p>Main Street</p></li>

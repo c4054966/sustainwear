@@ -79,7 +79,7 @@ func (c *Config) Validate() error {
 // RETURNS DB STRING FROM CONFIG
 func (d *DatabaseConfig) GetConnectionString() (string, error) {
 	switch strings.ToLower(d.Driver) {
-	case "sqlite3":
+	case "sqlite":
 		if d.Path == "" {
 			return "", fmt.Errorf("database path is required for sqlite3")
 		}

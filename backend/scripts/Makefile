@@ -1,8 +1,8 @@
 build:
-	go build -o bin/sustainwear cmd/api/main.go
+	go build -o sustainwear.exe
 
 run:
-	go run cmd/main.go
+	go run main.go
 
 init-db:
 	./scripts/init_db.sh
