@@ -1,65 +1,91 @@
-import Image from "next/image";
+import Header_main from "@/components/layout/Header_main";
+import Footer_main from "@/components/layout/Footer-main";
+
+import "./homepage.css";
+
+export const metadata = {
+  title: "Homepage",
+};
+
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <Header_main />
+      <div className="headline">
+        <div id="headline-text">
+          <h1>Help Sustain Wear in achieving its mission</h1>
+          <p>Together, we can close the loop on fashion waste. Join our movement to give pre-loved clothes a second life and protect our planet for future generations.</p>
+          <div className="headline-buttons">
+            <a href=".." id="button">Donate now</a>
+            <a href="./MissionImpact" id="button">Find more about our mission</a>
+          </div>
+        </div>
+        <img src="/images/headline_image.webp" alt="Sustainable Fashion" />
+      </div>
+
+      <div id="Content">
+        <div id="Content-img">
+          <img src="/images/headline_image.webp" alt="Sustainable Fashion" />
+        </div>
+        <div id="Content-text">
+          <h2>Why Choose Sustain Wear?</h2>
+          <p>
+            Measurable Impact:<br></br>
+            Don't just donate,know the difference you make. Our smart dashboard calculates exactly how much CO2 and landfill waste you save with every item you give.
+          </p>
+
+          <p>
+            Total Transparency<br></br>
+            Wondering where your old coat ended up? We bridge the gap between donors and charities, giving you visibility into the lifecycle of your donation.
+          </p>
+
+          <p>
+            Empowering Charities<br></br>
+            We help local charities sort and distribute inventory faster. Your structured data helps them spend less time sorting piles and more time helping people.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <div id="splitContent">
+        <div className="container">
+          <div className="imgcontainer">
+            <a href="../MissionImpact"><img src="images/headline_image.webp" alt="Mission & Impact" /></a>
+          </div>
+          <h3>Mission & Impact</h3>
         </div>
-      </main>
-    </div>
+
+        <div className="container">
+          <div className="imgcontainer">
+            <a href="../FindUs"><img src="./images/headline_image.webp" alt="Find us" /></a>
+          </div>
+          <h3>Find us</h3>
+        </div>
+
+        <div className="container">
+          <div className="imgcontainer">
+            <a href=".."><img src="./images/headline_image.webp" alt="My Account" /></a>
+          </div>
+          <h3>My Account</h3>
+        </div>
+      </div>
+
+      <div className="partners">
+        <h2>Trusted by UK organisations & communities</h2>
+        <p>We partner with leading organisations and local shelters to ensure your donations reach those who need them most. Together, we are building a transparent, zero-waste future.</p>
+        <div className="partner-logos">
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+          <img src="/images/headline_image.webp" alt="Partner 1" />
+        </div>
+      </div>
+      <Footer_main />
+    </>
   );
 }

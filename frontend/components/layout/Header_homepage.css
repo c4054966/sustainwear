@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+#topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #81C7C4;
+    height: 100px;
+    width: auto;
+    margin: 0;
+    padding: 0 10%;
+}
+
+#topbar img {
+    height: 55px;
+    width: auto;
+    object-fit: contain;
+}
+
+#account {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+#account img {
+    height: 20px;
+    object-fit: contain;
+}
+
+#account a {
+    color: #1F3F5B;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+#account a:hover {
+    text-decoration: underline;
+}
+
+#topbar #menubtn {
+    display: none;
+    height: 20%;
+    width: auto;
+}
+
+nav {
+    height: 70px;
+    display: flex;
+    position: relative;
+    z-index: 10;
+    background-color: #e7e7e7;
+
+    align-items: center;
+    margin: 0;
+    padding: 0 10%;
+}
+
+nav ul {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    list-style: none;
+    font-weight: bolder;
+    font-size: 24px;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    cursor: pointer;
+    padding: 20px 0;
+    font-weight: bolder;
+    font-size: 24px;
+
+}
+
+nav ul li a {
+    color: #000;
+    font-size: 20px;
+    font-weight: bolder;
+    text-decoration: none;
+}
+
+nav #moblink {
+    display: none;
+}
+
+nav ul li:after {
+    content: '';
+    display: block;
+    height: 3px;
+    width: calc(100% + 20px);
+    background-color: #1F3F5B;
+    border-radius: 50px;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+    margin: 4px 0 0 -10px;
+}
+
+nav ul li:hover:after {
+    transform: scaleX(1);
+}
+
+@media (max-width: 900px) {
+    #topbar {
+        padding: 0 5%;
+        box-shadow: 0px 20px 80px -15px grey;
+
+    }
+
+    #topbar #menubtn {
+        display: block;
+        font-size: 40px;
+        font-weight: bolder;
+    }
+
+    #account {
+        display: none;
+    }
+
+    nav {
+        cursor: pointer;
+        position: absolute;
+        height: auto;
+        width: 100%;
+        z-index: 100;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.75s ease-in;
+        display: flex;
+        box-sizing: border-box;
+        flex-direction: column;
+        margin: 0 0 0 0;
+        padding: 0 5%;
+    }
+
+    nav #moblink {
+        display: block;
+    }
+
+    nav.open {
+        max-height: 100%;
+    }
+
+    nav ul {
+        flex-direction: column;
+        width: 100%;
+        margin: 0;
+    }
+
+    nav ul {
+        flex-direction: column;
+        width: 100%;
+    }
+
+}
