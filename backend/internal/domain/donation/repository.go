@@ -3,7 +3,6 @@ package donation
 import (
 	"database/sql"
 	"errors"
-	"log"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -33,13 +32,11 @@ func (r *SQLRepository) Create(donation *Donation) error {
 		donation.Category, donation.Size, donation.Gender, donation.Condition,
 		donation.Quantity, donation.Images, donation.Status, donation.OrgID, donation.Notes)
 	if err != nil {
-		log.Printf("DONATION: Failed to create donation: %v", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("DONATION: Failed to get donation ID: %v", err)
 		return err
 	}
 
@@ -59,12 +56,10 @@ func (r *SQLRepository) GetByID(id uint) (*Donation, error) {
 		&donation.OrgID, &donation.Notes, &donation.CreatedAt, &donation.UpdatedAt)
 
 	if err == sql.ErrNoRows {
-		log.Printf("DONATION: Donation not found with ID: %d", id)
 		return nil, errors.New("donation not found")
 	}
 
 	if err != nil {
-		log.Printf("DONATION: Failed to get donation by ID: %v", err)
 		return nil, err
 	}
 
@@ -102,7 +97,6 @@ func (r *SQLRepository) List(filters map[string]interface{}) ([]Donation, error)
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
-		log.Printf("DONATION: Failed to list donations: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -128,18 +122,15 @@ func (r *SQLRepository) UpdateStatus(id uint, status, notes string) error {
 
 	result, err := r.db.Exec(query, status, notes, id)
 	if err != nil {
-		log.Printf("DONATION: Failed to update donation status: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("DONATION: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("DONATION: Donation not found with ID: %d", id)
 		return errors.New("donation not found")
 	}
 
@@ -152,18 +143,15 @@ func (r *SQLRepository) Delete(id uint) error {
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		log.Printf("DONATION: Failed to delete donation: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("DONATION: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("DONATION: Donation not found with ID: %d", id)
 		return errors.New("donation not found")
 	}
 

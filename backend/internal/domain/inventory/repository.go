@@ -3,13 +3,11 @@ package inventory
 import (
 	"database/sql"
 	"errors"
-	"log"
 )
 
 type Repository interface {
 	Create(item *InventoryItem) error
 	GetByID(id uint) (*InventoryItem, error)
-	GetByDonationID(donationID uint) (*InventoryItem, error)
 	List(orgID uint, filters map[string]interface{}) ([]InventoryItem, error)
 	Update(item *InventoryItem) error
 	UpdateQuantities(id uint, available, allocated, distributed int) error
@@ -34,13 +32,11 @@ func (r *SQLRepository) Create(item *InventoryItem) error {
 		item.Quantity, item.AvailableQty, item.AllocatedQty, item.DistributedQty,
 		item.Location, item.Status, item.OrgID)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to create inventory item: %v", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get inventory ID: %v", err)
 		return err
 	}
 
@@ -59,35 +55,10 @@ func (r *SQLRepository) GetByID(id uint) (*InventoryItem, error) {
 		&item.Location, &item.Status, &item.OrgID, &item.CreatedAt, &item.UpdatedAt)
 
 	if err == sql.ErrNoRows {
-		log.Printf("INVENTORY: Inventory item not found with ID: %d", id)
 		return nil, errors.New("inventory item not found")
 	}
 
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get inventory item by ID: %v", err)
-		return nil, err
-	}
-
-	return &item, nil
-}
-
-// GETS INVENTORY ITEM BY DONATION ID
-func (r *SQLRepository) GetByDonationID(donationID uint) (*InventoryItem, error) {
-	var item InventoryItem
-	query := `SELECT id, donation_id, item_name, category, condition, quantity, available_qty, allocated_qty, distributed_qty, location, status, org_id, created_at, updated_at
-	          FROM inventory WHERE donation_id = ?`
-
-	err := r.db.QueryRow(query, donationID).Scan(&item.ID, &item.DonationID, &item.ItemName, &item.Category,
-		&item.Condition, &item.Quantity, &item.AvailableQty, &item.AllocatedQty, &item.DistributedQty,
-		&item.Location, &item.Status, &item.OrgID, &item.CreatedAt, &item.UpdatedAt)
-
-	if err == sql.ErrNoRows {
-		log.Printf("INVENTORY: Inventory item not found with donation ID: %d", donationID)
-		return nil, errors.New("inventory item not found")
-	}
-
-	if err != nil {
-		log.Printf("INVENTORY: Failed to get inventory item by donation ID: %v", err)
 		return nil, err
 	}
 
@@ -120,7 +91,6 @@ func (r *SQLRepository) List(orgID uint, filters map[string]interface{}) ([]Inve
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to list inventory items: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -147,18 +117,15 @@ func (r *SQLRepository) Update(item *InventoryItem) error {
 
 	result, err := r.db.Exec(query, item.Location, item.Status, item.AvailableQty, item.AllocatedQty, item.DistributedQty, item.ID)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to update inventory item: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("INVENTORY: Inventory item not found with ID: %d", item.ID)
 		return errors.New("inventory item not found")
 	}
 
@@ -172,18 +139,15 @@ func (r *SQLRepository) UpdateQuantities(id uint, available, allocated, distribu
 
 	result, err := r.db.Exec(query, available, allocated, distributed, id)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to update inventory quantities: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("INVENTORY: Inventory item not found with ID: %d", id)
 		return errors.New("inventory item not found")
 	}
 
@@ -196,18 +160,15 @@ func (r *SQLRepository) Delete(id uint) error {
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to delete inventory item: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("INVENTORY: Inventory item not found with ID: %d", id)
 		return errors.New("inventory item not found")
 	}
 

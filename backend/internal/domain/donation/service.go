@@ -43,7 +43,7 @@ func (s *Service) Create(donorID uint, req *CreateRequest) (*Donation, error) {
 	}
 
 	if err := s.repo.Create(donation); err != nil {
-		return nil, fmt.Errorf("failed to create donation: %w", err)
+		return nil, fmt.Errorf("server error: %v", err)
 	}
 
 	return donation, nil

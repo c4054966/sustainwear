@@ -2,7 +2,7 @@ package inventory
 
 import (
 	"errors"
-	"log"
+	"fmt"
 )
 
 type Service struct {
@@ -13,7 +13,48 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-// CREATES INVENTORY ITEM FROM DONATION
+func (s *Service) CreateManual(req *CreateInventoryRequest, orgID uint) (*InventoryItem, error) {
+	if req.Quantity <= 0 {
+		return nil, errors.New("quantity must be greater than 0")
+	}
+
+	if req.ItemName == "" || req.Category == "" || req.Condition == "" {
+		return nil, errors.New("item name, category, and condition are required")
+	}
+
+	validConditions := map[string]bool{"new": true, "like_new": true, "good": true, "fair": true, "poor": true}
+	if !validConditions[req.Condition] {
+		return nil, errors.New("invalid condition. Must be: new, like_new, good, fair, or poor")
+	}
+
+	location := req.Location
+	if location == "" {
+		location = "warehouse" // DEFAULT LOCATION
+	}
+
+	item := &InventoryItem{
+		DonationID:     0, // NO DONATION ID FOR MANUAL ENTRIES
+		ItemName:       req.ItemName,
+		Category:       req.Category,
+		Condition:      req.Condition,
+		Quantity:       req.Quantity,
+		AvailableQty:   req.Quantity, // ALL AVAILABLE INITIALLY
+		AllocatedQty:   0,
+		DistributedQty: 0,
+		Location:       location,
+		Status:         "available",
+		OrgID:          orgID,
+	}
+
+	err := s.repo.Create(item)
+	if err != nil {
+		return nil, fmt.Errorf("server error: %v", err)
+	}
+
+	return item, nil
+}
+
+// CREATES INVENTORY ITEM FROM DONATION - USED IN DONATIONS HANDLER
 func (s *Service) CreateFromDonation(donationID uint, itemName, category, condition string, quantity int, orgID uint) (*InventoryItem, error) {
 	if quantity <= 0 {
 		return nil, errors.New("quantity must be greater than 0")
@@ -39,11 +80,9 @@ func (s *Service) CreateFromDonation(donationID uint, itemName, category, condit
 
 	err := s.repo.Create(item)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to create inventory item: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("server error: %v", err)
 	}
 
-	log.Printf("INVENTORY: Created inventory item ID %d for donation %d", item.ID, donationID)
 	return item, nil
 }
 
@@ -56,23 +95,6 @@ func (s *Service) GetByID(id uint, orgID uint) (*InventoryItem, error) {
 
 	// AUTH CHECK
 	if item.OrgID != orgID {
-		log.Printf("INVENTORY: Unauthorized access to inventory item %d by org %d", id, orgID)
-		return nil, errors.New("unauthorized access")
-	}
-
-	return item, nil
-}
-
-// GETS INVENTORY ITEM BY DONATION ID
-func (s *Service) GetByDonationID(donationID uint, orgID uint) (*InventoryItem, error) {
-	item, err := s.repo.GetByDonationID(donationID)
-	if err != nil {
-		return nil, err
-	}
-
-	// AUTH CHECK
-	if item.OrgID != orgID {
-		log.Printf("INVENTORY: Unauthorized access to inventory by org %d", orgID)
 		return nil, errors.New("unauthorized access")
 	}
 
@@ -83,11 +105,9 @@ func (s *Service) GetByDonationID(donationID uint, orgID uint) (*InventoryItem, 
 func (s *Service) List(orgID uint, filters map[string]interface{}) ([]InventoryItem, error) {
 	items, err := s.repo.List(orgID, filters)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to list inventory items: %v", err)
 		return nil, err
 	}
 
-	log.Printf("INVENTORY: Listed %d inventory items for org %d", len(items), orgID)
 	return items, nil
 }
 
@@ -112,11 +132,9 @@ func (s *Service) Update(id uint, orgID uint, req *UpdateInventoryRequest) (*Inv
 
 	err = s.repo.Update(item)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to update inventory item: %v", err)
 		return nil, err
 	}
 
-	log.Printf("INVENTORY: Updated inventory item %d", id)
 	return item, nil
 }
 
@@ -141,11 +159,9 @@ func (s *Service) Allocate(id uint, orgID uint, quantityToAllocate int) error {
 
 	err = s.repo.UpdateQuantities(id, newAvailable, newAllocated, item.DistributedQty)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to allocate inventory: %v", err)
 		return err
 	}
 
-	log.Printf("INVENTORY: Allocated %d units from inventory item %d", quantityToAllocate, id)
 	return nil
 }
 
@@ -170,7 +186,6 @@ func (s *Service) Distribute(id uint, orgID uint, quantityToDistribute int) erro
 
 	err = s.repo.UpdateQuantities(id, item.AvailableQty, newAllocated, newDistributed)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to distribute inventory: %v", err)
 		return err
 	}
 
@@ -180,7 +195,6 @@ func (s *Service) Distribute(id uint, orgID uint, quantityToDistribute int) erro
 		s.repo.Update(item)
 	}
 
-	log.Printf("INVENTORY: Distributed %d units from inventory item %d", quantityToDistribute, id)
 	return nil
 }
 
@@ -205,11 +219,9 @@ func (s *Service) Deallocate(id uint, orgID uint, quantityToDeallocate int) erro
 
 	err = s.repo.UpdateQuantities(id, newAvailable, newAllocated, item.DistributedQty)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to deallocate inventory: %v", err)
 		return err
 	}
 
-	log.Printf("INVENTORY: Deallocated %d units from inventory item %d", quantityToDeallocate, id)
 	return nil
 }
 
@@ -227,11 +239,9 @@ func (s *Service) Delete(id uint, orgID uint) error {
 
 	err = s.repo.Delete(id)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to delete inventory item: %v", err)
 		return err
 	}
 
-	log.Printf("INVENTORY: Deleted inventory item %d", id)
 	return nil
 }
 
@@ -239,10 +249,8 @@ func (s *Service) Delete(id uint, orgID uint) error {
 func (s *Service) GetStats(orgID uint) (*InventoryStats, error) {
 	stats, err := s.repo.GetStats(orgID)
 	if err != nil {
-		log.Printf("INVENTORY: Failed to get inventory stats: %v", err)
 		return nil, err
 	}
 
-	log.Printf("INVENTORY: Retrieved inventory stats for org %d", orgID)
 	return stats, nil
 }

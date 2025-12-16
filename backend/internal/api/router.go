@@ -40,69 +40,74 @@ func NewRouter(cfg *config.Config, db *sql.DB) *mux.Router {
 	// INITIALIZE HANDLERS
 	authHandler := handlers.NewAuthHandler(userService, cfg)
 	userHandler := handlers.NewUserHandler(userService, cfg)
-	donationHandler := handlers.NewDonationHandler(donationService, cfg)
-	inventoryHandler := handlers.NewInventoryHandler(inventoryService, cfg)
-	organisationHandler := handlers.NewOrganisationHandler(organisationService, cfg)
-	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService, cfg)
+	donationHandler := handlers.NewDonationHandler(donationService, inventoryService, userService, cfg)
+	inventoryHandler := handlers.NewInventoryHandler(inventoryService, userService, cfg)
+	organisationHandler := handlers.NewOrganisationHandler(organisationService, userService, cfg)
+	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService, userService, cfg)
 	uploadHandler := handlers.NewUploadHandler(cfg)
+
+	// ROLE BASED MIDDLEWARE
+	requireAdmin := middleware.RequireRole("admin")
+	requireStaffOrAdmin := middleware.RequireRole("charity_staff", "admin")
 
 	// FOR PROTECTED ROUTES
 	protected := router.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware(cfg))
 
 	// AUTH ROUTES
-	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")   // UNPROTECTED
-	router.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")         // UNPROTECTED
-	protected.HandleFunc("/auth/logout", authHandler.Logout).Methods("POST")        // PROTECTED
-	protected.HandleFunc("/auth/refresh", authHandler.RefreshToken).Methods("POST") // PROTECTED
+	router.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")   // REGISTER - UNPROTECTED
+	router.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")         // LOGIN - UNPROTECTED
+	protected.HandleFunc("/auth/logout", authHandler.Logout).Methods("POST")        // LOGOUT - PROTECTED
+	protected.HandleFunc("/auth/refresh", authHandler.RefreshToken).Methods("POST") // REFRESH AUTH TOKEN - PROTECTED
 
 	// USER ROUTES
-	protected.HandleFunc("/users/profile", userHandler.GetProfile).Methods("GET")
-	protected.HandleFunc("/users/profile", userHandler.UpdateProfile).Methods("PUT")
-	protected.HandleFunc("/users", userHandler.List).Methods("GET")
-	protected.HandleFunc("/users/{id}", userHandler.GetByID).Methods("GET")
-	protected.HandleFunc("/users/{id}", userHandler.Delete).Methods("DELETE")
+	protected.HandleFunc("/users/profile", userHandler.GetProfile).Methods("GET")                         // GET USER PROFILE
+	protected.HandleFunc("/users/profile", userHandler.UpdateProfile).Methods("PUT")                      // UPDATE USER PROFILE
+	protected.Handle("/users", requireAdmin(http.HandlerFunc(userHandler.List))).Methods("GET")           // LIST USERS - REQUIRES ADMIN
+	protected.Handle("/users/{id}", requireAdmin(http.HandlerFunc(userHandler.GetByID))).Methods("GET")   // GET USER BY ID - REQUIRES ADMIN
+	protected.Handle("/users/{id}", requireAdmin(http.HandlerFunc(userHandler.Delete))).Methods("DELETE") // DELETE USER BY ID - REQUIRES ADMIN
 
 	// DONATION ROUTES
-	protected.HandleFunc("/donations", donationHandler.Create).Methods("POST")
-	protected.HandleFunc("/donations", donationHandler.List).Methods("GET")
-	protected.HandleFunc("/donations/my", donationHandler.GetMyDonations).Methods("GET")
-	protected.HandleFunc("/donations/{id}", donationHandler.GetByID).Methods("GET")
-	protected.HandleFunc("/donations/{id}/status", donationHandler.UpdateStatus).Methods("PUT")
-	protected.HandleFunc("/donations/{id}/approve", donationHandler.Approve).Methods("POST")
-	protected.HandleFunc("/donations/{id}/reject", donationHandler.Reject).Methods("POST")
-	protected.HandleFunc("/donations/{id}", donationHandler.Delete).Methods("DELETE")
+	protected.HandleFunc("/donations", donationHandler.Create).Methods("POST")                                                     // CREATE DONATION
+	protected.HandleFunc("/donations/my", donationHandler.GetMyDonations).Methods("GET")                                           // GET MY DONATIONS
+	protected.Handle("/donations", requireStaffOrAdmin(http.HandlerFunc(donationHandler.List))).Methods("GET")                     // LIST DONATIONS - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/donations/{id}", requireStaffOrAdmin(http.HandlerFunc(donationHandler.GetByID))).Methods("GET")             // GET DONATION BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/donations/{id}/status", requireStaffOrAdmin(http.HandlerFunc(donationHandler.UpdateStatus))).Methods("PUT") // UPDATE DONATION STATUS BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/donations/{id}/approve", requireStaffOrAdmin(http.HandlerFunc(donationHandler.Approve))).Methods("POST")    // APPROVE DONATION BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/donations/{id}/reject", requireStaffOrAdmin(http.HandlerFunc(donationHandler.Reject))).Methods("POST")      // REJECT DONATION BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/donations/{id}", requireAdmin(http.HandlerFunc(donationHandler.Delete))).Methods("DELETE")                  // DELETE DONATION BY ID - REQUIRES ADMIN
 
 	// INVENTORY ROUTES
-	protected.HandleFunc("/inventory", inventoryHandler.List).Methods("GET")
-	protected.HandleFunc("/inventory/{id}", inventoryHandler.GetByID).Methods("GET")
-	protected.HandleFunc("/inventory/{id}", inventoryHandler.Update).Methods("PUT")
-	protected.HandleFunc("/inventory/{id}/allocate", inventoryHandler.Allocate).Methods("POST")
-	protected.HandleFunc("/inventory/{id}/distribute", inventoryHandler.Distribute).Methods("POST")
-	protected.HandleFunc("/inventory/{id}/deallocate", inventoryHandler.Deallocate).Methods("POST")
-	protected.HandleFunc("/inventory/{id}", inventoryHandler.Delete).Methods("DELETE")
-	protected.HandleFunc("/inventory/stats", inventoryHandler.GetStats).Methods("GET")
+	protected.HandleFunc("/inventory", inventoryHandler.List).Methods("GET")                                                           // LIST INVENTORY ITEMS
+	protected.HandleFunc("/inventory/{id}", inventoryHandler.GetByID).Methods("GET")                                                   // GET INVENTORY ITEM BY ID
+	protected.Handle("/inventory", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Update))).Methods("POST")                     // MANUAL CREATE INVENTORY ITEM - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/{id}", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Update))).Methods("PUT")                 // UPDATE INVENTORY ITEM BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/{id}/allocate", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Allocate))).Methods("POST")     // ALLOCATE INVENTORY BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/{id}/distribute", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Distribute))).Methods("POST") // DISTRIBUTE INVENTORY BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/{id}/deallocate", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Deallocate))).Methods("POST") // DEALLOCATE INVENTORY BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/stats", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.GetStats))).Methods("GET")              // INVENTORY STATS - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory/{id}", requireAdmin(http.HandlerFunc(inventoryHandler.Delete))).Methods("DELETE")                     // DELETE INVENTORY ITEM - REQUIRES ADMIN
 
 	// ORGANISATION ROUTES
-	protected.HandleFunc("/organisations", organisationHandler.Create).Methods("POST")
-	protected.HandleFunc("/organisations", organisationHandler.List).Methods("GET")
-	protected.HandleFunc("/organisations/{id}", organisationHandler.GetByID).Methods("GET")
-	protected.HandleFunc("/organisations/email", organisationHandler.GetByEmail).Methods("GET")
-	protected.HandleFunc("/organisations/{id}", organisationHandler.Update).Methods("PUT")
-	protected.HandleFunc("/organisations/{id}", organisationHandler.Delete).Methods("DELETE")
-	protected.HandleFunc("/organisations/{id}/stats", organisationHandler.GetStats).Methods("GET")
+	protected.HandleFunc("/organisations", organisationHandler.List).Methods("GET")                                                   // LIST ORGANISATIONS
+	protected.HandleFunc("/organisations/{id}", organisationHandler.GetByID).Methods("GET")                                           // GET ORGANISATION BY ID
+	protected.HandleFunc("/organisations/email/{email}", organisationHandler.GetByEmail).Methods("GET")                               // GET ORGANISATION BY EMAIL
+	protected.Handle("/organisations/{id}/stats", requireStaffOrAdmin(http.HandlerFunc(organisationHandler.GetStats))).Methods("GET") // GET ORGANISATION STATS BY ID - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/organisations", requireAdmin(http.HandlerFunc(organisationHandler.Create))).Methods("POST")                    // CREATE ORGANISATION - REQUIRES ADMIN
+	protected.Handle("/organisations/{id}", requireAdmin(http.HandlerFunc(organisationHandler.Update))).Methods("PUT")                // UPDATE ORGANISATION BY ID - REQUIRES ADMIN
+	protected.Handle("/organisations/{id}", requireAdmin(http.HandlerFunc(organisationHandler.Delete))).Methods("DELETE")             // DELETE ORGANISATION BY ID - REQUIRES ADMIN
 
 	// ANALYTICS ROUTES
-	protected.HandleFunc("/analytics/trends", analyticsHandler.GetDonationTrends).Methods("GET")
-	protected.HandleFunc("/analytics/categories", analyticsHandler.GetCategoryBreakdown).Methods("GET")
-	protected.HandleFunc("/analytics/sustainability", analyticsHandler.GetSustainabilityMetrics).Methods("GET")
-	protected.HandleFunc("/analytics/donor-impact", analyticsHandler.GetDonorImpact).Methods("GET")
-	protected.HandleFunc("/analytics/org-performance", analyticsHandler.GetOrgPerformance).Methods("GET")
-	protected.HandleFunc("/analytics/system-overview", analyticsHandler.GetSystemOverview).Methods("GET")
+	protected.HandleFunc("/analytics/donor-impact", analyticsHandler.GetDonorImpact).Methods("GET")                                                // GET DONOR SUSTAINABILITY IMPACT
+	protected.Handle("/analytics/trends", requireStaffOrAdmin(http.HandlerFunc(analyticsHandler.GetDonationTrends))).Methods("GET")                // GET DONATION TRENDS - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/analytics/categories", requireStaffOrAdmin(http.HandlerFunc(analyticsHandler.GetCategoryBreakdown))).Methods("GET")         // GET CATEGORY BREAKDOWN - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/analytics/sustainability", requireStaffOrAdmin(http.HandlerFunc(analyticsHandler.GetSustainabilityMetrics))).Methods("GET") // GET SUSTAINABILITY METRICS - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/analytics/org-performance", requireStaffOrAdmin(http.HandlerFunc(analyticsHandler.GetOrgPerformance))).Methods("GET")       // GET ORGANISATION PERFORMANCE - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/analytics/system-overview", requireAdmin(http.HandlerFunc(analyticsHandler.GetSystemOverview))).Methods("GET")              // GET SYSTEM OVERVIEW - REQUIRES ADMIN
 
 	// UPLOAD ROUTES
-	protected.HandleFunc("/uploads/images", uploadHandler.UploadImages).Methods("POST")                                                       // PROTECTED
-	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.FileUpload.UploadDir)))).Methods("GET") // UNPROTECTED
+	protected.HandleFunc("/uploads/images", uploadHandler.UploadImages).Methods("POST")                                                       // MULTIPART EP TO UPLOAD IMAGES - PROTECTED
+	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.FileUpload.UploadDir)))).Methods("GET") // FILESERVER TO VIEW UPLOADED FILES - UNPROTECTED
 
 	// HEALTH CHECK
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

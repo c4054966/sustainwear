@@ -58,7 +58,7 @@ func (s *Service) Register(req *RegisterRequest) (*User, error) {
 	}
 
 	if err := s.repo.Create(user); err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		return nil, fmt.Errorf("server error: %w", err)
 	}
 
 	return user, nil

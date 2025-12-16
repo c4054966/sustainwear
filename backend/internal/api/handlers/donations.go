@@ -1,25 +1,34 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"sustainwear/internal/api/middleware"
 	"sustainwear/internal/config"
 	"sustainwear/internal/domain/donation"
+	"sustainwear/internal/domain/inventory"
+	"sustainwear/internal/domain/user"
 
+	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 )
 
 type DonationHandler struct {
-	donationService *donation.Service
-	config          *config.Config
+	donationService  *donation.Service
+	inventoryService *inventory.Service
+	userService      *user.Service
+	config           *config.Config
 }
 
-func NewDonationHandler(donationService *donation.Service, cfg *config.Config) *DonationHandler {
+func NewDonationHandler(donationService *donation.Service, inventoryService *inventory.Service, userService *user.Service, cfg *config.Config) *DonationHandler {
 	return &DonationHandler{
-		donationService: donationService,
-		config:          cfg,
+		donationService:  donationService,
+		inventoryService: inventoryService,
+		userService:      userService,
+		config:           cfg,
 	}
 }
 
@@ -29,13 +38,20 @@ func (h *DonationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var req donation.CreateRequest
 	if err := jsoniter.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("DONATIONS: [POST api/donations] - Failed to decode request body - %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	created, err := h.donationService.Create(userID, &req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if strings.Contains(err.Error(), "server error") {
+			log.Printf("DONATIONS: [POST api/donations] - Failed to create donation - %v", err)
+			http.Error(w, "Unable to create donation", http.StatusInternalServerError)
+		} else {
+			log.Printf("DONATIONS: [POST api/donations] - Bad request - %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 
@@ -46,21 +62,29 @@ func (h *DonationHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // GET DONATION BY ID
 func (h *DonationHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("DONATIONS: [GET api/donations/{id}] - Donation ID missing in request")
 		http.Error(w, "Donation ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("DONATIONS: [GET api/donations/{id}] - Invalid donation ID: %v", err)
 		http.Error(w, "Invalid donation ID", http.StatusBadRequest)
 		return
 	}
 
 	donation, err := h.donationService.GetByID(uint(id))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if strings.Contains(err.Error(), "not found") {
+			log.Printf("DONATIONS: [GET api/donations/{id}] - Donation not found with ID: %d", id)
+			http.Error(w, "Donation not found", http.StatusNotFound)
+		} else {
+			log.Printf("DONATIONS: [GET api/donations/{id}] - Failed to get donation: %v", err)
+			http.Error(w, "Unable to retrieve donation", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -101,7 +125,8 @@ func (h *DonationHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	donations, err := h.donationService.List(filters)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("DONATIONS: [GET api/donations] - Failed to list donations: %v", err)
+		http.Error(w, "Unable to list donations", http.StatusInternalServerError)
 		return
 	}
 
@@ -136,7 +161,8 @@ func (h *DonationHandler) GetMyDonations(w http.ResponseWriter, r *http.Request)
 
 	donations, err := h.donationService.List(filters)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("DONATIONS: [GET api/donations/my] - Failed to list donations for user %d: %v", userID, err)
+		http.Error(w, "Unable to get my donations", http.StatusInternalServerError)
 		return
 	}
 
@@ -152,14 +178,16 @@ func (h *DonationHandler) GetMyDonations(w http.ResponseWriter, r *http.Request)
 
 // UPDATE DONATION STATUS (CHARITY STAFF)
 func (h *DonationHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("DONATIONS: [PUT api/donations/{id}/status] - Donation ID is required")
 		http.Error(w, "Donation ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("DONATIONS: [PUT api/donations/{id}/status] - Invalid donation ID: %v", err)
 		http.Error(w, "Invalid donation ID", http.StatusBadRequest)
 		return
 	}
@@ -170,13 +198,15 @@ func (h *DonationHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := jsoniter.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("DONATIONS: [PUT api/donations/{id}/status] - Failed to decode request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	err = h.donationService.UpdateStatus(uint(id), req.Status, req.Notes)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("DONATIONS: [PUT api/donations/{id}/status] - Failed to update status for donation %d: %v", id, err)
+		http.Error(w, "Unable to update donation status", http.StatusInternalServerError)
 		return
 	}
 
@@ -188,41 +218,122 @@ func (h *DonationHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 
 // APPROVE DONATION (CHARITY STAFF)
 func (h *DonationHandler) Approve(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("DONATIONS: [POST api/donations/{id}/approve] - Donation ID is required")
 		http.Error(w, "Donation ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/approve] - Invalid donation ID: %v", err)
 		http.Error(w, "Invalid donation ID", http.StatusBadRequest)
+		return
+	}
+
+	orgID, err := middleware.GetOrgIDForRequest(r, h.userService.GetByID)
+	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/approve] - Unauthorized: %v", err)
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	donation, err := h.donationService.GetByID(uint(id))
+	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/approve] - Donation not found: %v", err)
+		http.Error(w, "Donation not found", http.StatusNotFound)
+		return
+	}
+
+	// PREVENT PANIC
+	if donation.OrgID == nil {
+		log.Printf("DONATIONS: [POST api/donations/%d/approve] - Donation has no organisation assigned", id)
+		http.Error(w, "Donation has no organisation assigned", http.StatusBadRequest)
+		return
+	}
+
+	if *donation.OrgID != orgID {
+		log.Printf("DONATIONS: [POST api/donations/%d/approve] - Donation belongs to org %d, not %d", id, *donation.OrgID, orgID)
+		http.Error(w, "Access denied: donation belongs to different organisation", http.StatusForbidden)
 		return
 	}
 
 	err = h.donationService.UpdateStatus(uint(id), "approved", "Donation approved")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("DONATIONS: [POST api/donations/%d/approve] - Failed to approve: %v", id, err)
+		http.Error(w, "Unable to approve donation", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = h.inventoryService.CreateFromDonation(
+		donation.ID,
+		donation.ItemName,
+		donation.Category,
+		donation.Condition,
+		donation.Quantity,
+		uint(orgID),
+	)
+	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/%d/approve] - Failed to create inventory: %v", id, err)
+
+		rollbackErr := h.donationService.UpdateStatus(uint(id), "pending", "Approval failed - inventory creation error")
+		if rollbackErr != nil {
+			log.Printf("DONATIONS: [POST api/donations/{id}/approve] - CRITICAL: Failed to rollback donation status: %v", rollbackErr)
+			http.Error(w, "Critical error: donation approved but inventory failed. Contact support.", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("DONATIONS: [POST api/donations/%d/approve] - Rolled back donation %d to pending status due to inventory creation failure", id, id)
+		http.Error(w, "Error creating inventory from donation", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	jsoniter.NewEncoder(w).Encode(map[string]string{
-		"message": "Donation approved successfully",
+		"message": "Donation approved and added to inventory",
 	})
 }
 
 // REJECT DONATION (CHARITY STAFF)
 func (h *DonationHandler) Reject(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Donation ID is required")
 		http.Error(w, "Donation ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Invalid donation ID: %v", err)
 		http.Error(w, "Invalid donation ID", http.StatusBadRequest)
+		return
+	}
+
+	orgID, err := middleware.GetOrgIDForRequest(r, h.userService.GetByID)
+	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Unauthorized: %v", err)
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	donation, err := h.donationService.GetByID(uint(id))
+	if err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Donation not found: %v", err)
+		http.Error(w, "Donation not found", http.StatusNotFound)
+		return
+	}
+
+	// PREVENT PANIC
+	if donation.OrgID == nil {
+		log.Printf("DONATIONS: [POST api/donations/%d/reject] - Donation has no organisation assigned", id)
+		http.Error(w, "Donation has no organisation assigned", http.StatusBadRequest)
+		return
+	}
+
+	if *donation.OrgID != orgID {
+		log.Printf("DONATIONS: [POST api/donations/%d/reject] - Access denied: donation belongs to org %d, not %d", id, *donation.OrgID, orgID)
+		http.Error(w, "Access denied: donation belongs to different organisation", http.StatusForbidden)
 		return
 	}
 
@@ -231,13 +342,15 @@ func (h *DonationHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := jsoniter.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Failed to decode request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	err = h.donationService.UpdateStatus(uint(id), "rejected", req.Reason)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("DONATIONS: [POST api/donations/{id}/reject] - Failed to reject donation %d: %v", id, err)
+		http.Error(w, "Unable to reject donation", http.StatusInternalServerError)
 		return
 	}
 
@@ -250,20 +363,23 @@ func (h *DonationHandler) Reject(w http.ResponseWriter, r *http.Request) {
 
 // DELETE DONATION
 func (h *DonationHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("DONATIONS: [DELETE api/donations/{id}] - Donation ID is required")
 		http.Error(w, "Donation ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("DONATIONS: [DELETE api/donations/{id}] - Invalid donation ID: %v", err)
 		http.Error(w, "Invalid donation ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.donationService.Delete(uint(id))
 	if err != nil {
+		log.Printf("DONATIONS: [DELETE api/donations/{id}] - Failed to delete donation %d: %v", id, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

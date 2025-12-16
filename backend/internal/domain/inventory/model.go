@@ -19,6 +19,15 @@ type InventoryItem struct {
 	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
 }
 
+type CreateInventoryRequest struct {
+	ItemName    string `json:"item_name"`
+	Category    string `json:"category"`
+	Condition   string `json:"condition"`
+	Quantity    int    `json:"quantity"`
+	Location    string `json:"location"`
+	Description string `json:"description,omitempty"`
+}
+
 type UpdateInventoryRequest struct {
 	Quantity *int    `json:"quantity"`
 	Location *string `json:"location"`

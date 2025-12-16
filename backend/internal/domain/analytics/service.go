@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"errors"
-	"log"
 	"time"
 )
 
@@ -31,11 +30,9 @@ func (s *Service) GetDonationTrends(orgID uint, period string, startDate, endDat
 
 	trends, err := s.repo.GetDonationTrends(orgID, period, startDate, endDate)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get donation trends: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved %d donation trends for org %d", len(trends), orgID)
 	return trends, nil
 }
 
@@ -47,11 +44,9 @@ func (s *Service) GetCategoryBreakdown(orgID uint) ([]CategoryBreakdown, error) 
 
 	breakdown, err := s.repo.GetCategoryBreakdown(orgID)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get category breakdown: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved category breakdown for org %d", orgID)
 	return breakdown, nil
 }
 
@@ -68,11 +63,9 @@ func (s *Service) GetSustainabilityMetrics(orgID uint, period string) (*Sustaina
 
 	metrics, err := s.repo.GetSustainabilityMetrics(orgID, period)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get sustainability metrics: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved sustainability metrics for org %d (%s)", orgID, period)
 	return metrics, nil
 }
 
@@ -84,11 +77,9 @@ func (s *Service) GetDonorImpact(donorID uint) (*DonorImpact, error) {
 
 	impact, err := s.repo.GetDonorImpact(donorID)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get donor impact: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved donor impact for donor %d", donorID)
 	return impact, nil
 }
 
@@ -100,11 +91,9 @@ func (s *Service) GetOrgPerformance(orgID uint) (*OrgPerformance, error) {
 
 	performance, err := s.repo.GetOrgPerformance(orgID)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get org performance: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved performance metrics for org %d", orgID)
 	return performance, nil
 }
 
@@ -112,10 +101,8 @@ func (s *Service) GetOrgPerformance(orgID uint) (*OrgPerformance, error) {
 func (s *Service) GetSystemOverview() (*SystemOverview, error) {
 	overview, err := s.repo.GetSystemOverview()
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get system overview: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ANALYTICS: Retrieved system-wide overview")
 	return overview, nil
 }

@@ -2,10 +2,13 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"sustainwear/internal/config"
+	domainuser "sustainwear/internal/domain/user"
 	"sustainwear/pkg/jwt"
 )
 
@@ -13,8 +16,8 @@ type contextKey string
 
 const (
 	UserIDKey    contextKey = "user_id"
-	UserEmailKey contextKey = "user_email"
-	UserRoleKey  contextKey = "user_role"
+	UserEmailKey contextKey = "email"
+	UserRoleKey  contextKey = "role"
 )
 
 // AUTH MIDDLEWARE - VALIDATES JWT TOKEN
@@ -103,4 +106,35 @@ func GetUserRole(r *http.Request) string {
 		return ""
 	}
 	return role
+}
+
+// GETS ORG ID BASED ON USER ROLE & QUERIES DB TO GET ORG ID (SECURITY PURPOSES)
+func GetOrgIDForRequest(r *http.Request, getUserByID func(uint) (*domainuser.User, error)) (uint, error) {
+	userID := GetUserID(r)
+	role := GetUserRole(r)
+
+	if role == "admin" {
+		orgIDStr := r.URL.Query().Get("org_id")
+		if orgIDStr == "" {
+			return 0, fmt.Errorf("admin must specify org_id parameter")
+		}
+		orgID, err := strconv.ParseUint(orgIDStr, 10, 32)
+		if err != nil {
+			return 0, fmt.Errorf("invalid org_id")
+		}
+		return uint(orgID), nil
+	}
+
+	if role == "charity_staff" {
+		appUser, err := getUserByID(userID)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get user info")
+		}
+		if appUser.OrganisationID == nil {
+			return 0, fmt.Errorf("charity staff must be assigned to an organisation")
+		}
+		return *appUser.OrganisationID, nil
+	}
+
+	return 0, fmt.Errorf("access denied: insufficient permissions")
 }
