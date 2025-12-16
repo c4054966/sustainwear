@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import './register.css'; 
+import { authService } from '@/services/api';
+import './register.css';
 
 export default function RegisterPage() {
   const router = useRouter();
   
+  // We still keep the state to capture user input
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -21,46 +23,23 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // 1. Prepare Payload
+      // Note: We are ignoring 'confirmPassword' here since the backend 
+      // likely only needs the final password.
       const payload = {
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
-        role: "donor" 
+        role: "donor"
       };
 
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      // 2. Send to Backend (Let the backend decide if it's valid)
+      const data = await authService.register(payload);
 
-      const rawResponse = await res.text();
-
-      let data;
-      try {
-        data = JSON.parse(rawResponse);
-      } catch (err) {
-        data = { details: rawResponse || 'Registration failed' };
-      }
-
-      if (!res.ok) {
-        throw new Error(data.details || data.error || 'Registration failed');
-      }
-
+      // 3. Success: Save session & Redirect
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         id: data.user_id,
@@ -68,9 +47,11 @@ export default function RegisterPage() {
         role: data.role
       }));
 
-      router.push('/dashboard'); 
+      router.push('/dashboard');
 
     } catch (err: any) {
+      // If the backend says "Passwords do not match" or "Password too short",
+      // it will be caught here and displayed.
       setError(err.message);
     } finally {
       setLoading(false);

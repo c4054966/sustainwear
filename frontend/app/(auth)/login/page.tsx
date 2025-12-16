@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authService } from '@/services/api'; // Import the new service
 import './login.css';
 
 export default function LoginPage() {
@@ -17,25 +18,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      // --- CLEAN API CALL ---
+      const data = await authService.login(formData);
+      // ---------------------
 
-      const rawResponse = await res.text();
-
-      let data;
-      try {
-        data = JSON.parse(rawResponse);
-      } catch (err) {
-        data = { details: rawResponse || 'Something went wrong' };
-      }
-
-      if (!res.ok) {
-        throw new Error(data.details || data.error || 'Invalid credentials');
-      }
-
+      // Save user session
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         id: data.user_id,
@@ -43,7 +30,13 @@ export default function LoginPage() {
         role: data.role
       }));
 
-      router.push('/dashboard');
+      if (data.role === 'admin') {
+        router.push('/admin');
+      } else if (data.role === 'staff') {
+        router.push('/staff');
+      } else {
+        router.push('/donor'); // Since the folder is (dashboard)/donor, the URL is /donor
+      }
 
     } catch (err: any) {
       setError(err.message);
