@@ -2,8 +2,8 @@ package organisation
 
 import (
 	"errors"
-	"log"
-	"regexp"
+	"fmt"
+	"sustainwear/pkg/validator"
 )
 
 type Service struct {
@@ -24,7 +24,7 @@ func (s *Service) Create(req *CreateOrgRequest) (*Organisation, error) {
 		return nil, errors.New("email is required")
 	}
 
-	if !isValidEmail(req.Email) {
+	if !validator.IsValidEmail(req.Email) {
 		return nil, errors.New("invalid email format")
 	}
 
@@ -37,7 +37,7 @@ func (s *Service) Create(req *CreateOrgRequest) (*Organisation, error) {
 		return nil, errors.New("invalid organisation type")
 	}
 
-	if req.PostCode != "" && !isValidUKPostcode(req.PostCode) {
+	if req.PostCode != "" && !validator.IsValidUKPostcode(req.PostCode) {
 		return nil, errors.New("invalid UK postcode format")
 	}
 
@@ -63,11 +63,9 @@ func (s *Service) Create(req *CreateOrgRequest) (*Organisation, error) {
 
 	err := s.repo.Create(org)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to create organisation: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("server error: %v", err)
 	}
 
-	log.Printf("ORGANISATION: Created organisation %s (ID: %d)", org.Name, org.ID)
 	return org, nil
 }
 
@@ -99,11 +97,9 @@ func (s *Service) GetByEmail(email string) (*Organisation, error) {
 func (s *Service) List(filters map[string]interface{}) ([]Organisation, error) {
 	orgs, err := s.repo.List(filters)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to list organisations: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ORGANISATION: Listed %d organisations", len(orgs))
 	return orgs, nil
 }
 
@@ -142,7 +138,7 @@ func (s *Service) Update(id uint, req *UpdateOrgRequest) (*Organisation, error) 
 	}
 
 	if req.PostCode != nil {
-		if *req.PostCode != "" && !isValidUKPostcode(*req.PostCode) {
+		if *req.PostCode != "" && !validator.IsValidUKPostcode(*req.PostCode) {
 			return nil, errors.New("invalid UK postcode format")
 		}
 		org.PostCode = *req.PostCode
@@ -162,11 +158,9 @@ func (s *Service) Update(id uint, req *UpdateOrgRequest) (*Organisation, error) 
 
 	err = s.repo.Update(org)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to update organisation: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ORGANISATION: Updated organisation %d", id)
 	return org, nil
 }
 
@@ -179,11 +173,9 @@ func (s *Service) Delete(id uint) error {
 
 	err = s.repo.Delete(id)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to delete organisation: %v", err)
 		return err
 	}
 
-	log.Printf("ORGANISATION: Deleted organisation %d", id)
 	return nil
 }
 
@@ -196,22 +188,8 @@ func (s *Service) GetStats(orgID uint) (*OrgStats, error) {
 
 	stats, err := s.repo.GetStats(orgID)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get stats: %v", err)
 		return nil, err
 	}
 
-	log.Printf("ORGANISATION: Retrieved stats for organisation %d", orgID)
 	return stats, nil
-}
-
-// VALIDATES EMAIL FORMAT
-func isValidEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return emailRegex.MatchString(email)
-}
-
-// VALIDATES UK POSTCODE FORMAT
-func isValidUKPostcode(postcode string) bool {
-	postcodeRegex := regexp.MustCompile(`^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$`)
-	return postcodeRegex.MatchString(postcode)
 }

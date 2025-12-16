@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"sustainwear/internal/api/middleware"
 	"sustainwear/internal/config"
 	"sustainwear/internal/domain/user"
 
+	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -29,7 +32,13 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.userService.GetByID(userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if strings.Contains(err.Error(), "not found") {
+			log.Printf("USERS: [GET api/users/profile] - User profile not found for user ID %d", userID)
+			http.Error(w, "User profile not found", http.StatusNotFound)
+		} else {
+			log.Printf("USERS: [GET api/users/profile] - Failed to get profile for user ID %d: %v", userID, err)
+			http.Error(w, "Unable to get user profile", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -43,7 +52,8 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	existingUser, err := h.userService.GetByID(userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		log.Printf("USERS: [PUT api/users/profile] - Failed to update profile for user ID %d: %v", userID, err)
+		http.Error(w, "Unable to update user profile", http.StatusInternalServerError)
 		return
 	}
 
@@ -72,21 +82,29 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 // GET USER BY ID (ADMIN/ORG STAFF)
 func (h *UserHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("USERS: [GET api/users/{id}] - User ID is missing in request")
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("USERS: [GET api/users/{id}] - Invalid user ID: %s", idStr)
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.userService.GetByID(uint(id))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if strings.Contains(err.Error(), "not found") {
+			log.Printf("USERS: [GET api/users/{id}] - User profile not found for user ID %d", id)
+			http.Error(w, "User profile not found", http.StatusNotFound)
+		} else {
+			log.Printf("USERS: [GET api/users/{id}] - Failed to get profile for user ID %d: %v", id, err)
+			http.Error(w, "Unable to get user profile", http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -107,7 +125,8 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.userService.ListPaginated(pageSize, offset)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("USERS: [GET api/users] - Failed to list users: %v", err)
+		http.Error(w, "Unable to list users", http.StatusInternalServerError)
 		return
 	}
 
@@ -123,21 +142,24 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 
 // DELETE USER (ADMIN ONLY)
 func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	if idStr == "" {
+		log.Printf("USERS: [DELETE api/users/{id}] - User ID is missing in request")
 		http.Error(w, "User ID is required", http.StatusBadRequest)
 		return
 	}
 
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
+		log.Printf("USERS: [DELETE api/users/{id}] - Invalid user ID: %s", idStr)
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.userService.Delete(uint(id))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("USERS: [DELETE api/users/{id}] - Failed to delete user with ID %d: %v", id, err)
+		http.Error(w, "Unable to delete user", http.StatusInternalServerError)
 		return
 	}
 

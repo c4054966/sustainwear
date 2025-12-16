@@ -10,33 +10,30 @@ import (
 )
 
 func main() {
-	// LOAD CONFIGURATION
+	// LOAD CONFIG
 	cfg, err := config.Load("config.toml")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	log.Printf("Starting SustainWear API server...")
-
-	// GET DATABASE CONNECTION STRING
+	// GET DB CONNECTION STRING
 	connStr, err := cfg.Database.GetConnectionString()
 	if err != nil {
 		log.Fatalf("Failed to get database connection string: %v", err)
 	}
 
-	// INITIALIZE DATABASE
+	// INITIALISE DB
 	db, err := storage.NewDB(cfg.Database.Driver, connStr)
 	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		log.Fatalf("Failed to initialise database: %v", err)
 	}
 	defer db.Close()
 
-	// INITIALIZE ROUTER
+	// INITIALISE ROUTER
 	router := api.NewRouter(cfg, db.DB)
 
-	// START SERVER
 	addr := cfg.Server.Host + ":" + cfg.Server.Port
-	log.Printf("Server listening on %s", addr)
+	log.Printf("SustainWear Server listening on %s", addr)
 
 	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatalf("Server failed to start: %v", err)

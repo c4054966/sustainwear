@@ -16,7 +16,7 @@ func IsValidEmail(email string) bool {
 
 func IsValidPassword(password string) (bool, error) {
 	if len(password) < 8 {
-		return false, errors.New("password must be at least 8 characters")
+		return false, errors.New("invalid password: must be at least 8 characters")
 	}
 
 	var (
@@ -38,11 +38,11 @@ func IsValidPassword(password string) (bool, error) {
 
 	switch false {
 	case hasUpper:
-		return false, errors.New("password must contain at least one uppercase letter")
+		return false, errors.New("invalid password: must contain at least one uppercase letter")
 	case hasLower:
-		return false, errors.New("password must contain at least one lowercase letter")
+		return false, errors.New("invalid password: must contain at least one lowercase letter")
 	case hasSpecial:
-		return false, errors.New("password must contain at least one special character")
+		return false, errors.New("invalid password: must contain at least one special character")
 	}
 
 	return true, nil
@@ -81,4 +81,9 @@ func ValidateRequired(fields map[string]string) error {
 		}
 	}
 	return nil
+}
+
+func IsValidUKPostcode(postcode string) bool {
+	postcodeRegex := regexp.MustCompile(`^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d[A-Z]{2}$`)
+	return postcodeRegex.MatchString(postcode)
 }

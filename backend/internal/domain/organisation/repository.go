@@ -3,7 +3,6 @@ package organisation
 import (
 	"database/sql"
 	"errors"
-	"log"
 )
 
 type Repository interface {
@@ -32,13 +31,11 @@ func (r *SQLRepository) Create(org *Organisation) error {
 	result, err := r.db.Exec(query, org.Name, org.Description, org.Type, org.Email, org.Phone,
 		org.Address, org.City, org.County, org.PostCode, org.Country, org.Website, org.Status)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to create organisation: %v", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get organisation ID: %v", err)
 		return err
 	}
 
@@ -57,12 +54,10 @@ func (r *SQLRepository) GetByID(id uint) (*Organisation, error) {
 		&org.Status, &org.CreatedAt, &org.UpdatedAt)
 
 	if err == sql.ErrNoRows {
-		log.Printf("ORGANISATION: Organisation not found with ID: %d", id)
 		return nil, errors.New("organisation not found")
 	}
 
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get organisation by ID: %v", err)
 		return nil, err
 	}
 
@@ -80,12 +75,10 @@ func (r *SQLRepository) GetByEmail(email string) (*Organisation, error) {
 		&org.Status, &org.CreatedAt, &org.UpdatedAt)
 
 	if err == sql.ErrNoRows {
-		log.Printf("ORGANISATION: Organisation not found with email: %s", email)
 		return nil, errors.New("organisation not found")
 	}
 
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get organisation by email: %v", err)
 		return nil, err
 	}
 
@@ -123,7 +116,6 @@ func (r *SQLRepository) List(filters map[string]interface{}) ([]Organisation, er
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to list organisations: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -151,18 +143,15 @@ func (r *SQLRepository) Update(org *Organisation) error {
 	result, err := r.db.Exec(query, org.Name, org.Description, org.Phone, org.Address, org.City,
 		org.County, org.PostCode, org.Website, org.Status, org.ID)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to update organisation: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("ORGANISATION: Organisation not found with ID: %d", org.ID)
 		return errors.New("organisation not found")
 	}
 
@@ -175,18 +164,15 @@ func (r *SQLRepository) Delete(id uint) error {
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to delete organisation: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("ORGANISATION: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("ORGANISATION: Organisation not found with ID: %d", id)
 		return errors.New("organisation not found")
 	}
 
@@ -198,21 +184,36 @@ func (r *SQLRepository) GetStats(orgID uint) (*OrgStats, error) {
 	stats := &OrgStats{}
 
 	// TOTAL DONATIONS RECEIVED
-	r.db.QueryRow(`SELECT COUNT(*) FROM donations WHERE org_id = ?`, orgID).Scan(&stats.TotalDonations)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM donations WHERE org_id = ?`, orgID).Scan(&stats.TotalDonations)
+	if err != nil {
+		return nil, err
+	}
 
 	// TOTAL INVENTORY QUANTITY
-	r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&stats.TotalInventoryQty)
+	err = r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&stats.TotalInventoryQty)
+	if err != nil {
+		return nil, err
+	}
 
 	// AVAILABLE STOCK (ITEMS READY TO ALLOCATE)
-	r.db.QueryRow(`SELECT COALESCE(SUM(available_qty), 0) FROM inventory WHERE org_id = ? AND status = 'available'`, orgID).Scan(&stats.AvailableStock)
+	err = r.db.QueryRow(`SELECT COALESCE(SUM(available_qty), 0) FROM inventory WHERE org_id = ? AND status = 'available'`, orgID).Scan(&stats.AvailableStock)
+	if err != nil {
+		return nil, err
+	}
 
 	// ACTIVE CHARITY STAFF (NOT DONORS)
-	r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE org_id = ? AND role IN ('charity_staff', 'admin')`, orgID).Scan(&stats.ActiveStaff)
+	err = r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE org_id = ? AND role IN ('charity_staff', 'admin')`, orgID).Scan(&stats.ActiveStaff)
+	if err != nil {
+		return nil, err
+	}
 
 	// SUSTAINABILITY METRICS - CO2 SAVED (ESTIMATE: 6KG CO2 PER KG OF CLOTHES DONATED)
 	var totalWeight float64
-	r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&totalWeight)
-	stats.CO2SavedKg = totalWeight * 6.0 // Rough estimate
+	err = r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&totalWeight)
+	if err != nil {
+		return nil, err
+	}
+	stats.CO2SavedKg = totalWeight * 6.0
 
 	// LANDFILL REDUCTION (ASSUME AVERAGE CLOTHING WEIGHT 0.5KG PER ITEM)
 	stats.LandfillReductionKg = totalWeight * 0.5

@@ -3,7 +3,6 @@ package user
 import (
 	"database/sql"
 	"errors"
-	"log"
 )
 
 type Repository interface {
@@ -30,13 +29,11 @@ func (r *SQLRepository) Create(user *User) error {
 
 	result, err := r.db.Exec(query, user.Email, user.PasswordHash, user.FullName, user.Role, user.OrganisationID, user.IsActive)
 	if err != nil {
-		log.Printf("USER: Failed to create user: %v", err)
 		return err
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		log.Printf("USER: Failed to get user ID: %v", err)
 		return err
 	}
 
@@ -52,11 +49,9 @@ func (r *SQLRepository) GetByID(id uint) (*User, error) {
 	err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FullName,
 		&user.Role, &user.OrganisationID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
 	if err == sql.ErrNoRows {
-		log.Printf("USER: User not found with ID: %d", id)
 		return nil, errors.New("user not found")
 	}
 	if err != nil {
-		log.Printf("USER: Failed to get user by ID: %v", err)
 		return nil, err
 	}
 
@@ -71,11 +66,9 @@ func (r *SQLRepository) GetByEmail(email string) (*User, error) {
 	err := r.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.FullName,
 		&user.Role, &user.OrganisationID, &user.IsActive, &user.CreatedAt, &user.UpdatedAt)
 	if err == sql.ErrNoRows {
-		log.Printf("USER: User not found with email: %s", email)
 		return nil, errors.New("user not found")
 	}
 	if err != nil {
-		log.Printf("USER: Failed to get user by email: %v", err)
 		return nil, err
 	}
 
@@ -88,7 +81,6 @@ func (r *SQLRepository) List() ([]User, error) {
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		log.Printf("USER: Failed to list users: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -112,7 +104,6 @@ func (r *SQLRepository) ListPaginated(limit, offset int) ([]User, error) {
 
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
-		log.Printf("USER: Failed to list users: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -137,18 +128,15 @@ func (r *SQLRepository) Update(user *User) error {
 
 	result, err := r.db.Exec(query, user.FullName, user.Role, user.OrganisationID, user.IsActive, user.ID)
 	if err != nil {
-		log.Printf("USER: Failed to update user: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("USER: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("USER: User not found with ID: %d", user.ID)
 		return errors.New("user not found")
 	}
 
@@ -160,18 +148,15 @@ func (r *SQLRepository) Delete(id uint) error {
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
-		log.Printf("USER: Failed to delete user: %v", err)
 		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("USER: Failed to get rows affected: %v", err)
 		return err
 	}
 
 	if rows == 0 {
-		log.Printf("USER: User not found with ID: %d", id)
 		return errors.New("user not found")
 	}
 
