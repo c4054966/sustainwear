@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+.dashboard-container {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f8f9fa;
+    font-family: "Quicksand", sans-serif;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.content-header {
+    margin-bottom: 2rem;
+}
+
+.content-header h1 {
+    font-size: 1.8rem;
+    color: #212529;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.header-date {
+    color: #6c757d;
+}
+
+.profile-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.profile-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    border: 1px solid #e9ecef;
+    width: 100%;
+    max-width: 600px;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e8f5e9;
+}
+
+.profile-title h2 {
+    font-size: 1.5rem;
+    color: #212529;
+    margin: 0 0 0.5rem 0;
+}
+
+.role-badge {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-input {
+    padding: 0.8rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #495057;
+    background-color: #f8f9fa;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.form-input.editable {
+    background-color: #fff;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+.form-input.editable:focus {
+    border-color: #2e7d32;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: #adb5bd;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.edit-btn,
+.save-btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+
+.edit-btn {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.edit-btn:hover {
+    background-color: #dee2e6;
+}
+
+.save-btn {
+    background-color: #2e7d32;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #1b5e20;
+}
+
+.cancel-btn {
+    padding: 0.8rem 1.5rem;
+    background: none;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.cancel-btn:hover {
+    background-color: #f8f9fa;
+}
+
+.message-alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.message-alert.success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.message-alert.error {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}

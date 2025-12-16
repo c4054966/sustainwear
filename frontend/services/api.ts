@@ -15,13 +15,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
             headers['Authorization'] = `Bearer ${token}`;
         }
     }
-
     const res = await fetch(url, { ...options, headers });
-
-    if (res.status === 204) {
-        return {} as T;
-    }
-
+    if (res.status === 204) return {} as T;
     const text = await res.text();
     let data;
     try {
@@ -37,46 +32,78 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     return data;
 }
 
-
 export const authService = {
-    login: (credentials: { email: string; password: string }) =>
-        request<any>('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify(credentials),
-        }),
+    login: (credentials: any) => request<any>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+    }),
 
-    register: (userData: any) =>
-        request<any>('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(userData),
-        }),
-
-    getProfile: () =>
-        request<any>('/users/profile', {
-            method: 'GET',
-        }),
+    register: (userData: any) => request<any>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+    }),
 
     logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+        }
     }
 };
 
+export const uploadService = {
+    uploadImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append('images', file);
+
+        const token = localStorage.getItem('token');
+
+        const res = await fetch(`${API_URL}/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || 'Image upload failed');
+        }
+
+        return res.json();
+    }
+};
+
+export const analyticsService = {
+  getDonorImpact: () => 
+    request<any>('/analytics/donor-impact', {
+      method: 'GET',
+    }),
+};
 
 export const donationService = {
-    getMyDonations: () =>
-        request<any>('/donations/my?page=1&page_size=5', { // Fetch top 5 recent
-            method: 'GET',
-        }),
+  getMyDonations: (page = 1, pageSize = 10) => 
+    request<any>(`/donations/my?page=${page}&page_size=${pageSize}`, {
+      method: 'GET',
+    }),
 
-    getStats: () =>
-        request<any>('/analytics/donor-impact', {
-            method: 'GET',
-        }),
+  create: (data: any) => 
+    request<any>('/donations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
 
-    create: (data: FormData) =>
-        request<any>('/donations', {
-            method: 'POST',
-            body: data, // Note: This might need different handling if sending files/images
-        }),
+export const userService = {
+  getProfile: () => 
+    request<any>('/users/profile', {
+      method: 'GET',
+    }),
+
+  updateProfile: (data: { full_name: string }) => 
+    request<any>('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 };
