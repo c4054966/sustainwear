@@ -1,42 +1,95 @@
-import { Button } from '@/components/ui/Button';
+"use client";
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import './login.css';
 
 export default function LoginPage() {
-    return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md rounded bg-white p-8 shadow">
+    const router = useRouter();
+    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-                <h1 className="mb-6 text-2xl font-bold">Login</h1>
-                <form className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const res = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.details || 'Invalid credentials');
+            }
+
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify({
+                id: data.user_id,
+                name: data.full_name,
+                role: data.role
+            }));
+
+            router.push('/dashboard');
+
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="login-page-container">
+            <Link href="/">
+                <img src="/Logo.webp" alt="SustainWear Logo" className="login-logo" />
+            </Link>
+
+            <div className="login-card">
+                <h1 className="login-title">Welcome Back</h1>
+                <p className="login-subtitle">Sign in to continue your sustainable journey</p>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">Email Address</label>
                         <input
                             type="email"
-                            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-                            placeholder="Enter your email"
+                            required
+                            className="form-input"
+                            placeholder="you@example.com"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
+
+                    <div className="form-group">
+                        <label className="form-label">Password</label>
                         <input
                             type="password"
-                            className="mt-1 w-full rounded border border-gray-300 px-3 py-2"
-                            placeholder="Enter your password"
+                            required
+                            className="form-input"
+                            placeholder="••••••••"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full rounded bg-blue-600 py-2 text-white font-medium hover:bg-blue-700"
-                    >
-                        Sign In
+
+                    <button type="submit" disabled={loading} className="submit-btn">
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
-                    <Button variant="link" size="sm" className="w-full text-center">
-                        Forgot Password?
-                    </Button>
                 </form>
+
+                <div className="login-footer">
+                    <p>New donor? <Link href="/register" className="login-link">Create an account</Link></p>
+                </div>
             </div>
         </div>
     );

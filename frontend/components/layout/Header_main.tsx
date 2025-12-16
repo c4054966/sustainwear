@@ -15,8 +15,7 @@ export default function Header() {
         <a href=".."><img src="/Logo.webp" /></a>
         <div id="account">
           <img src="/icons/Account_icon.webp" />
-          <a href="..\app\(auth)\login">My Account</a>
-        </div>
+          <a href="/login">My Account</a>        </div>
         <img src="/icons/menu.webp" id='menubtn' onClick={toggleMenu}></img>
       </div>
       <nav className={menuOpen ? "open" : " "}>
