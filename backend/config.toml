@@ -22,7 +22,11 @@ jwt_secret = "secret-key"
 jwt_expiry_hours = 24
 
 [CORS]
+<<<<<<< HEAD
 allowed_origins = ["*"]
+=======
+allowed_origins = ["*"] # E.G ["http://localhost:3000"] FOR SPECIFICS
+>>>>>>> 4189a6eb6cbe51e066233e8ef31f2ba88a77c50b
 
 [FILEUPLOAD]
 upload_dir = "./uploads"
