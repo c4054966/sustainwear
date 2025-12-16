@@ -72,7 +72,7 @@ func DefaultConfig() *Config {
 			JWTExpiryHours: 24,
 		},
 		CORS: CORSConfig{
-			AllowedOrigins: []string{"http://localhost:3000"},
+			AllowedOrigins: []string{"*"},
 		},
 		FileUpload: FileUploadConfig{
 			UploadDir:        "./uploads",
