@@ -71,7 +71,7 @@ export const uploadService = {
 
     const token = localStorage.getItem('token');
 
-    const res = await fetch(`${API_URL}/upload`, {
+    const res = await fetch(`${API_URL}/uploads/images`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
