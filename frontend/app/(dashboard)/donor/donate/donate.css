@@ -5,6 +5,7 @@
     flex-direction: row;
     min-height: 100vh;
     width: 100%;
+    margin: 0 0 0 0;
     background-color: #f8f9fa;
     font-family: "Quicksand", sans-serif;
 }
@@ -71,6 +72,12 @@
     width: 100%;
     background-color: #fff;
     transition: border-color 0.2s, box-shadow 0.2s;
+    height: 48px;
+}
+
+.form-textarea {
+    height: auto;
+    resize: vertical;
 }
 
 .form-input:focus,
@@ -80,6 +87,13 @@
     outline: none;
     box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
 }
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 .form-row {
     display: flex;
@@ -177,7 +191,6 @@
     border: none;
     border-radius: 8px;
     font-family: "Quicksand", sans-serif;
-
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
@@ -223,7 +236,6 @@
 @media (max-width: 900px) {
     .donate-form {
         grid-template-columns: 1fr;
-        /* Stack vertically on small screens */
         gap: 2rem;
     }
 
@@ -233,7 +245,6 @@
 
     .form-actions {
         justify-content: stretch;
-        /* Full width buttons on mobile */
     }
 
     .submit-btn,
