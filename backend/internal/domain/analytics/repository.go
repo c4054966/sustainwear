@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 	"time"
 )
@@ -143,24 +142,25 @@ func (r *SQLRepository) GetDonorImpact(donorID uint) (*DonorImpact, error) {
 	impact := &DonorImpact{DonorID: donorID}
 
 	query := `SELECT COUNT(*), COALESCE(SUM(quantity), 0), MIN(created_at), MAX(created_at)
-	          FROM donations 
-	          WHERE donor_id = ?`
+              FROM donations 
+              WHERE donor_id = ?`
 
-	var firstDonation, lastDonation string
+	var firstDonation, lastDonation sql.NullString
 	err := r.db.QueryRow(query, donorID).Scan(&impact.TotalDonations, &impact.TotalItemsDonated, &firstDonation, &lastDonation)
 	if err != nil {
-		log.Printf("ANALYTICS: Failed to get donor impact: %v", err)
 		return nil, err
 	}
 
-	// UK DATE FORMAT PARSING
-	impact.FirstDonation, _ = time.Parse("2006-01-02 15:04:05", firstDonation)
-	impact.LastDonation, _ = time.Parse("2006-01-02 15:04:05", lastDonation)
+	if firstDonation.Valid {
+		impact.FirstDonation, _ = time.Parse("2006-01-02 15:04:05", firstDonation.String)
+	}
 
-	// CO2 CALCULATION
+	if lastDonation.Valid {
+		impact.LastDonation, _ = time.Parse("2006-01-02 15:04:05", lastDonation.String)
+	}
+
 	impact.CO2SavedKg = float64(impact.TotalItemsDonated) * 6.0
 
-	// LANDFILL REDUCTION
 	impact.LandfillReductionKg = float64(impact.TotalItemsDonated) * 0.5
 
 	return impact, nil
@@ -170,35 +170,17 @@ func (r *SQLRepository) GetDonorImpact(donorID uint) (*DonorImpact, error) {
 func (r *SQLRepository) GetOrgPerformance(orgID uint) (*OrgPerformance, error) {
 	perf := &OrgPerformance{OrgID: orgID}
 
-	err := r.db.QueryRow(`SELECT name FROM organisations WHERE id = ?`, orgID).Scan(&perf.OrgName)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT name FROM organisations WHERE id = ?`, orgID).Scan(&perf.OrgName)
 
-	err = r.db.QueryRow(`SELECT COUNT(*) FROM donations WHERE org_id = ?`, orgID).Scan(&perf.DonationsReceived)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COUNT(*) FROM donations WHERE org_id = ?`, orgID).Scan(&perf.DonationsReceived)
 
-	err = r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsProcessed)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsProcessed)
 
-	err = r.db.QueryRow(`SELECT COALESCE(SUM(available_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsAvailable)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COALESCE(SUM(available_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsAvailable)
 
-	err = r.db.QueryRow(`SELECT COALESCE(SUM(allocated_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsAllocated)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COALESCE(SUM(allocated_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsAllocated)
 
-	err = r.db.QueryRow(`SELECT COALESCE(SUM(distributed_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsDistributed)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COALESCE(SUM(distributed_qty), 0) FROM inventory WHERE org_id = ?`, orgID).Scan(&perf.ItemsDistributed)
 
 	// UTILIZATION RATE CALCULATION
 	if perf.ItemsProcessed > 0 {
@@ -212,26 +194,13 @@ func (r *SQLRepository) GetOrgPerformance(orgID uint) (*OrgPerformance, error) {
 func (r *SQLRepository) GetSystemOverview() (*SystemOverview, error) {
 	overview := &SystemOverview{}
 
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM organisations WHERE status = 'active'`).Scan(&overview.TotalOrganisations)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COUNT(*) FROM organisations WHERE status = 'active'`).Scan(&overview.TotalOrganisations)
 
-	err = r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE role = 'donor'`).Scan(&overview.TotalDonors)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE role = 'donor'`).Scan(&overview.TotalDonors)
 
-	err = r.db.QueryRow(`SELECT COUNT(*) FROM donations`).Scan(&overview.TotalDonations)
-	if err != nil {
-		return nil, err
-	}
+	r.db.QueryRow(`SELECT COUNT(*) FROM donations`).Scan(&overview.TotalDonations)
 
-	err = r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory`).Scan(&overview.TotalItemsProcessed)
-	if err != nil {
-		return nil, err
-	}
-
+	r.db.QueryRow(`SELECT COALESCE(SUM(quantity), 0) FROM inventory`).Scan(&overview.TotalItemsProcessed)
 	// CO2 CALCULATION
 	overview.CO2SavedKg = float64(overview.TotalItemsProcessed) * 6.0
 

@@ -9,6 +9,7 @@ import (
 	"sustainwear/internal/api/middleware"
 	"sustainwear/internal/config"
 	"sustainwear/internal/domain/user"
+	"sustainwear/pkg/validator"
 
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
@@ -48,31 +49,104 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 // UPDATE USER PROFILE
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
-
-	existingUser, err := h.userService.GetByID(userID)
-	if err != nil {
-		log.Printf("USERS: [PUT api/users/profile] - Failed to update profile for user ID %d: %v", userID, err)
-		http.Error(w, "Unable to update user profile", http.StatusInternalServerError)
-		return
-	}
+	// THE != NIL EMPTY CHECKS ARE BECAUSE IF THEY PASS IN A VARIABLE WITH AN EMPTY STRING, IT WOULD OVERRIDE THE EXISTING VALUE STILL
+	currentUserID := middleware.GetUserID(r)
+	currentUserRole := middleware.GetUserRole(r)
 
 	var req struct {
+		UserID   *uint   `json:"user_id"`
 		FullName *string `json:"full_name"`
+		Email    *string `json:"email"`
+		Role     *string `json:"role"`
+		OrgID    *uint   `json:"org_id"`
+		IsActive *bool   `json:"is_active"`
 	}
 
 	if err := jsoniter.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("USERS: [PUT api/users/profile] - Invalid request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
+	targetUserID := currentUserID
+
+	if req.UserID != nil {
+		if currentUserRole != "admin" {
+			log.Printf("USERS: [PUT api/users/profile] - Non-admin user %d attempted to update user %d", currentUserID, *req.UserID)
+			http.Error(w, "Insufficient permissions to update other users", http.StatusForbidden)
+			return
+		}
+		targetUserID = *req.UserID
+	}
+
+	existingUser, err := h.userService.GetByID(targetUserID)
+	if err != nil {
+		log.Printf("USERS: [PUT api/users/profile] - Failed to get profile for user ID %d: %v", targetUserID, err)
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, "User not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Unable to update user profile", http.StatusInternalServerError)
+		}
+		return
+	}
+
 	if req.FullName != nil {
+		if validator.IsEmpty(*req.FullName) {
+			log.Printf("USERS: [PUT api/users/profile] - Full name string cannot be empty")
+			http.Error(w, "Full name string cannot be empty", http.StatusBadRequest)
+			return
+		}
 		existingUser.FullName = *req.FullName
+	}
+
+	if currentUserRole == "admin" {
+		if req.Email != nil {
+			if validator.IsEmpty(*req.Email) {
+				log.Printf("USERS: [PUT api/users/profile] - Email string cannot be empty")
+				http.Error(w, "Email string cannot be empty", http.StatusBadRequest)
+				return
+			}
+			if !validator.IsValidEmail(*req.Email) {
+				log.Printf("USERS: [PUT api/users/profile] - Invalid email format: %s", *req.Email)
+				http.Error(w, "Invalid email format", http.StatusBadRequest)
+				return
+			}
+			existingUser.Email = *req.Email
+		}
+
+		if req.Role != nil {
+			if validator.IsEmpty(*req.Role) {
+				log.Printf("USERS: [PUT api/users/profile] - Role string cannot be empty")
+				http.Error(w, "Role string cannot be empty", http.StatusBadRequest)
+				return
+			}
+			if !validator.IsValidRole(*req.Role) {
+				log.Printf("USERS: [PUT api/users/profile] - Invalid role: %s", *req.Role)
+				http.Error(w, "Invalid role. Must be: donor, charity_staff, or admin", http.StatusBadRequest)
+				return
+			}
+			existingUser.Role = *req.Role
+		}
+
+		if req.OrgID != nil {
+			existingUser.OrganisationID = req.OrgID
+		}
+
+		if req.IsActive != nil {
+			existingUser.IsActive = *req.IsActive
+		}
+	} else {
+		if req.Email != nil || req.Role != nil || req.OrgID != nil || req.IsActive != nil {
+			log.Printf("USERS: [PUT api/users/profile] - User %d attempted to update admin-only fields", currentUserID)
+			http.Error(w, "Insufficient permissions to update these fields", http.StatusForbidden)
+			return
+		}
 	}
 
 	err = h.userService.Update(existingUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("USERS: [PUT api/users/profile] - Failed to update user %d: %v", targetUserID, err)
+		http.Error(w, "Unable to update user profile", http.StatusInternalServerError)
 		return
 	}
 
@@ -133,7 +207,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"data":      users,
 		"page":      page,
-		"page_size": pageSize,
+		"page_size": len(users),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

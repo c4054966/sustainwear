@@ -133,7 +133,7 @@ func (h *DonationHandler) List(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"data":      donations,
 		"page":      page,
-		"page_size": pageSize,
+		"page_size": len(donations),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -169,7 +169,7 @@ func (h *DonationHandler) GetMyDonations(w http.ResponseWriter, r *http.Request)
 	response := map[string]interface{}{
 		"data":      donations,
 		"page":      page,
-		"page_size": pageSize,
+		"page_size": len(donations),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
