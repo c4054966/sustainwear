@@ -12,7 +12,7 @@ export default function Header() {
                                 <li><a href=".."><p>Home</p></a></li>
                                 <li><a href="../MissionImpact"><p>Mission & Impact</p></a></li>
                                 <li><a href="../FindUs"><p>Find Us</p></a></li>
-                                <li><a href="../MyAccount"><p>My Account</p></a></li>
+                                <li><a href="../login"><p>My Account</p></a></li>
                             </ul>
                         </div>
                         <div className="footerContent">

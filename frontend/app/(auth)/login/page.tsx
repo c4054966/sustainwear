@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from '@/services/api'; // Import the new service
+import { authService } from '@/services/api';
 import './login.css';
 
 export default function LoginPage() {
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       if (data.role === 'admin') {
         router.push('/admin');
-      } else if (data.role === 'staff') {
+      } else if (data.role === 'charity_staff') {
         router.push('/staff');
       } else {
         router.push('/donor'); 
