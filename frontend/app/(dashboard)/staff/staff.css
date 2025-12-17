@@ -10,7 +10,6 @@ body {
 
 .dashboard-container {
     display: flex;
-    flex-direction: column;
     flex-direction: row;
     height: auto;
     min-height: 100vh;
@@ -192,8 +191,6 @@ body {
     color: #842029;
 }
 
-
-
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -205,8 +202,16 @@ body {
     font-size: 1.1rem;
 }
 
-@media (max-width: 900px) {
+.loading-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: "Quicksand", sans-serif;
+    color: #6c757d;
+}
 
+@media (max-width: 900px) {
     .dashboard-container {
         flex-direction: column;
         height: auto;

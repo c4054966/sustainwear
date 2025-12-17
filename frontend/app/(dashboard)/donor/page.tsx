@@ -53,7 +53,6 @@ export default function DonorDashboard() {
     return (
         <div className="dashboard-container">
             <Sidebar role="donor" />
-
             <main className="dashboard-content">
                 <header className="content-header">
                     <h1>Welcome back, {user?.name?.split(' ')[0]}!</h1>

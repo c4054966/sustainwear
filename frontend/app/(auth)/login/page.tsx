@@ -18,11 +18,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // --- CLEAN API CALL ---
       const data = await authService.login(formData);
-      // ---------------------
-
-      // Save user session
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         id: data.user_id,
@@ -35,7 +31,7 @@ export default function LoginPage() {
       } else if (data.role === 'staff') {
         router.push('/staff');
       } else {
-        router.push('/donor'); // Since the folder is (dashboard)/donor, the URL is /donor
+        router.push('/donor'); 
       }
 
     } catch (err: any) {
