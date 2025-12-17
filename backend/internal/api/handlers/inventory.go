@@ -143,7 +143,7 @@ func (h *InventoryHandler) List(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"data":      items,
 		"page":      page,
-		"page_size": pageSize,
+		"page_size": len(items),
 	}
 
 	w.Header().Set("Content-Type", "application/json")

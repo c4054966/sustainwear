@@ -133,7 +133,7 @@ func (h *UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"data":      users,
 		"page":      page,
-		"page_size": pageSize,
+		"page_size": len(users),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
