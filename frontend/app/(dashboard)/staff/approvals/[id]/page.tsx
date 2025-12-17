@@ -15,7 +15,7 @@ interface DonationDetail {
     gender: string;
     condition: string;
     quantity: number;
-    images: string; 
+    images: string;
     status: string;
     created_at: string;
     donor_id: number;
@@ -27,8 +27,12 @@ export default function ReviewDetails() {
     const [donation, setDonation] = useState<DonationDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [parsedImages, setParsedImages] = useState<string[]>([]);
+
+    // Modal States
     const [rejectReason, setRejectReason] = useState("");
     const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showStatusModal, setShowStatusModal] = useState(false); // NEW
+    const [newStatus, setNewStatus] = useState(""); // NEW
 
     useEffect(() => {
         const id = Number(params.id);
@@ -39,7 +43,8 @@ export default function ReviewDetails() {
         try {
             const data = await donationService.getById(id);
             setDonation(data);
-            
+            setNewStatus(data.status); // Initialize with current status
+
             if (data.images) {
                 try {
                     const parsed = JSON.parse(data.images);
@@ -76,16 +81,30 @@ export default function ReviewDetails() {
         }
     };
 
+    // NEW: Handle Manual Status Update
+    const handleStatusUpdate = async () => {
+        if (!donation) return;
+        try {
+            // This calls the missing PUT /status endpoint
+            await donationService.updateStatus(donation.id, newStatus);
+            alert("Status updated successfully");
+            setShowStatusModal(false);
+            fetchDonation(donation.id); // Refresh data
+        } catch (error) {
+            alert('Failed to update status');
+        }
+    };
+
     if (loading) return <div className="loading-screen">Loading details...</div>;
     if (!donation) return <div className="error-screen">Donation not found</div>;
 
     return (
         <div className="dashboard-container">
             <Sidebar role="staff" />
-            
+
             <main className="dashboard-content">
                 <div className="back-nav">
-                    <button onClick={() => router.back()} className="back-btn">← Back to List</button>
+                    <button onClick={() => router.back()} className="back-btn">Back to List</button>
                 </div>
 
                 <div className="review-layout">
@@ -95,7 +114,17 @@ export default function ReviewDetails() {
                                 <h1>{donation.item_name}</h1>
                                 <span className="id-badge">ID: #{donation.id}</span>
                             </div>
-                            <span className={`status-badge ${donation.status}`}>{donation.status}</span>
+                            <div style={{ textAlign: 'right' }}>
+                                <span className={`status-badge ${donation.status}`}>{donation.status}</span>
+                                {/* NEW: Edit Status Link */}
+                                <button
+                                    className="btn-link"
+                                    onClick={() => setShowStatusModal(true)}
+                                    style={{ display: 'block', fontSize: '0.8rem', marginTop: '5px', color: '#666', textDecoration: 'underline', border: 'none', background: 'none', cursor: 'pointer' }}
+                                >
+                                    Edit Status
+                                </button>
+                            </div>
                         </header>
 
                         <div className="info-grid">
@@ -121,11 +150,12 @@ export default function ReviewDetails() {
                             <label>Description</label>
                             <p>{donation.description}</p>
                         </div>
-                        
+
                         <div className="date-info">
                             <small>Submitted on {new Date(donation.created_at).toLocaleString()}</small>
                         </div>
 
+                        {/* Standard Workflow Buttons */}
                         {donation.status === 'pending' && (
                             <div className="action-buttons">
                                 <button className="cta-btn reject-btn" onClick={() => setShowRejectModal(true)}>
@@ -154,25 +184,53 @@ export default function ReviewDetails() {
                     </div>
                 </div>
 
+                {/* REJECT MODAL */}
                 {showRejectModal && (
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <h3>Reject Donation</h3>
                             <p>Please provide a reason for rejection:</p>
-                            <textarea 
+                            <textarea
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
-                                placeholder="E.g., Item heavily damaged, Does not meet hygiene standards..."
+                                placeholder="E.g., Item heavily damaged..."
+                                className="form-textarea"
                             />
                             <div className="modal-actions">
                                 <button className="cancel-btn" onClick={() => setShowRejectModal(false)}>Cancel</button>
-                                <button 
-                                    className="confirm-reject-btn" 
+                                <button
+                                    className="confirm-reject-btn"
                                     onClick={handleReject}
                                     disabled={!rejectReason.trim()}
                                 >
                                     Confirm Rejection
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* NEW: STATUS UPDATE MODAL */}
+                {showStatusModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content">
+                            <h3>Manually Update Status</h3>
+                            <p>Change status without triggering inventory logic.</p>
+                            <select
+                                className="form-select"
+                                value={newStatus}
+                                onChange={(e) => setNewStatus(e.target.value)}
+                                style={{ marginBottom: '20px' }}
+                            >
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="received">Received</option>
+                                <option value="in_transit">In Transit</option>
+                            </select>
+                            <div className="modal-actions">
+                                <button className="cancel-btn" onClick={() => setShowStatusModal(false)}>Cancel</button>
+                                <button className="submit-btn" onClick={handleStatusUpdate}>Save Change</button>
                             </div>
                         </div>
                     </div>
