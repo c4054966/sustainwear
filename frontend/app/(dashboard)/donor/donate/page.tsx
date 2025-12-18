@@ -16,6 +16,9 @@ export default function DonatePage() {
         category: 'Clothing',
         condition: 'Good',
         description: '',
+        quantity: 1,
+        size: '',
+        gender: 'Unisex',
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -50,7 +53,10 @@ export default function DonatePage() {
                 category: formData.category,
                 condition: formData.condition,
                 description: formData.description,
-                image_url: imageUrl
+                quantity: Number(formData.quantity),
+                size: formData.size,                 
+                gender: formData.gender,             
+                images: imageUrl ? [imageUrl] : []
             };
 
             await donationService.create(payload);
@@ -86,6 +92,7 @@ export default function DonatePage() {
                     <form onSubmit={handleSubmit} className="donate-form">
 
                         <div className="form-section">
+                            {/* --- EXISTING ITEM NAME --- */}
                             <div className="form-group">
                                 <label className="form-label">Item Name</label>
                                 <input
@@ -98,7 +105,48 @@ export default function DonatePage() {
                                 />
                             </div>
 
+                            {/* --- NEW ROW: QUANTITY & SIZE --- */}
                             <div className="form-row">
+                                <div className="form-group half">
+                                    <label className="form-label">Quantity</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        required
+                                        className="form-input"
+                                        value={formData.quantity}
+                                        onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
+                                    />
+                                </div>
+
+                                <div className="form-group half">
+                                    <label className="form-label">Size (Optional)</label>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        placeholder="e.g. M, L, 10, 42"
+                                        value={formData.size}
+                                        onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* --- NEW ROW: GENDER & CATEGORY --- */}
+                            <div className="form-row">
+                                <div className="form-group half">
+                                    <label className="form-label">Gender / Target</label>
+                                    <select
+                                        className="form-select"
+                                        value={formData.gender}
+                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                    >
+                                        <option value="Unisex">Unisex</option>
+                                        <option value="Men">Men</option>
+                                        <option value="Women">Women</option>
+                                        <option value="Kids">Kids</option>
+                                    </select>
+                                </div>
+
                                 <div className="form-group half">
                                     <label className="form-label">Category</label>
                                     <select

@@ -7,6 +7,8 @@ import (
 	"sustainwear/internal/api"
 	"sustainwear/internal/config"
 	"sustainwear/internal/storage"
+
+	"sustainwear/internal/api/middleware"
 )
 
 func main() {
@@ -36,6 +38,17 @@ func main() {
 	log.Printf("SustainWear Server listening on %s", addr)
 
 	if err := http.ListenAndServe(addr, router); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+
+	// Pass the config to CORSMiddleware, which returns the actual middleware function.
+	// Then pass the 'router' to that function.
+	handler := middleware.CORSMiddleware(cfg)(router)
+
+	// Optional: You can also wrap it with the Logger if you want global logging
+	handler = middleware.LoggerMiddleware(handler)
+
+	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

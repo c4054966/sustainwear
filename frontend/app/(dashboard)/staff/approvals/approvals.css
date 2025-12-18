@@ -5,7 +5,6 @@ body {
     font-family: "Quicksand", sans-serif;
 }
 
-/* Reusing dashboard layout */
 .dashboard-container {
     display: flex;
     flex-direction: row;
@@ -21,7 +20,6 @@ body {
     overflow-y: auto;
 }
 
-/* Header & Controls */
 .content-header h1 {
     font-size: 1.8rem;
     color: #212529;
@@ -40,7 +38,6 @@ body {
     margin-bottom: 1.5rem;
 }
 
-/* Table Styles */
 .table-container {
     background: white;
     border-radius: 12px;
@@ -55,7 +52,7 @@ body {
 }
 
 .data-table th {
-    text-align: left;
+    text-align: center;
     padding: 1.2rem;
     background-color: #f8f9fa;
     color: #6c757d;

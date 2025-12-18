@@ -26,9 +26,6 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // 1. Prepare Payload
-      // Note: We are ignoring 'confirmPassword' here since the backend 
-      // likely only needs the final password.
       const payload = {
         full_name: formData.full_name,
         email: formData.email,
@@ -36,10 +33,8 @@ export default function RegisterPage() {
         role: "donor"
       };
 
-      // 2. Send to Backend (Let the backend decide if it's valid)
       const data = await authService.register(payload);
 
-      // 3. Success: Save session & Redirect
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         id: data.user_id,
@@ -47,11 +42,9 @@ export default function RegisterPage() {
         role: data.role
       }));
 
-      router.push('/dashboard');
+      router.push('/login');
 
     } catch (err: any) {
-      // If the backend says "Passwords do not match" or "Password too short",
-      // it will be caught here and displayed.
       setError(err.message);
     } finally {
       setLoading(false);
