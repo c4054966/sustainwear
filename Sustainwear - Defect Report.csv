@@ -1,0 +1,18 @@
+Category,Label,Value,Value,Value,Value,Value,Value,Value,Value
+Bug ID,ID Number,1,2,3,4,5,6,7,8
+,Title,FE - Redirect Bug,BE - Unable to get donor impact analytics,FE - Invalid Image Upload EP,BE - Pagination EPs,BE - Pagination EPs,BE - Role Support for update user profile EP,BE - Using wrong inventory handler function for Manual Inventory Creation,FE - Not using the specific error returned by image upload endpoint
+,Reporter,Will,Will,Will,Will,Will,Will,Will,Will
+,Submit date,17/12/2025,17/12/2025,17/12/2025,17/12/2025,17/12/2025,17/12/2025,17/12/2025,17/12/2025
+Bug overview,Summary,Register redirecting to /dashboard,When attempting to retrieve a donors impact analytics when they have no donations,404 on image upload endpoint,"Pagination EPs returning incorrect value of ""page_size""","Pagination EPs don't have ""total_pages"" value","Missing role support - current implementation only supports updating ""full_name""",Using wrong handler function on route,Incorrect parsing
+,URL,localhost:3000/register,api/analytics/donor-impact,localhost:3000/donor,All pagination EPs,All pagination EPs,api/users/profile,api/inventory,api/uploads/images
+,Screenshot,,,,,,,,
+Environment,Platform,Windows ,Windows ,Windows ,Windows ,Windows ,Windows ,Windows ,Windows 
+,Operating System,11,11,11,11,11,11,11,11
+,Browser,Chrome 143,Chrome 143,Chrome 143,Chrome 143,Chrome 143,Chrome 143,Chrome 143,Chrome 143
+Bug details,Steps to reproduce,Register an account,Go to donor dashboard,"1. Login with donor account, 2. Upload an image, 3. Attempt to create donation",Use any pagination ep and look at response,Use any pagination ep and look at response,"Attempt to update a profile with more data than just ""full_name""",Attempt to create inventory,Attempting to upload an image when creating donation
+,Expected result,Goes to login page,Cant retrieve analytics,Successful creation of donation,page_size equal to the length of the data list,doesn't exist,Doesn't allow you to,Hits update inventory service function (PUT),Valid response - frontend showing the error
+,Actual result,Goes to dashboard without session token,Should retrieve analytics,Unable to create donation (due to invalid image upload endpoint in FE code),page_size equal to the maximum length of pagination,should exist with correct value,Should allow you to if you are admin,Should hit create inventory function,Valid Response - frontend not showing the error
+Bug tracking,Severity,Normal,High,High,Normal,Low,Medium,High,Normal
+,Assigned to,Tasmeer,Will,Will,Will,Will,Will,Will,Tasmeer
+,Priority,Normal,High,High,Normal,Low,Medium,High,Normal
+Notes,Notes,Changed router.push('/dashboard') to router.push('/login'),"Handle error to return dataset with default ""empty"" values rather than internal error",(api/upload) --> (api/uploads/images),Wrap len() in response,Extra query for every request to get this value - ignoring,Added implementation for role support with admin being able to update all aspects except user ID,inventoryHandler.Update --> inventoryHandler.Create,Incorrect parsing of errors array in json
