@@ -68,7 +68,9 @@ cd frontend
 Install the required dependencies:
 
 npm install
+
 npm install leaflet react-leaflet
+
 npm i --save-dev @types/leaflet
 
 
