@@ -53,14 +53,24 @@ export default function StaffDashboard() {
                 const today = new Date();
                 const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
 
-                const [donationsData, inventoryStats, trends] = await Promise.all([
-                    donationService.list({ status: 'pending', org_id: orgId, page_size: 5 }),
-                    inventoryService.getStats(orgId),
-                    analyticsService.getDonationTrends(orgId, 'daily', dateStr, dateStr)
-                ]);
+                let inventoryStats = { total_items: 0 };
+                let trends = [];
+                let donationsData = { data: [] };
 
-                const pendingReqs = donationsData.data || [];
-                const todaysItems = trends && trends.length > 0 ? trends[0].total_items : 0;
+                try {
+                    donationsData = await donationService.list({ status: 'pending', org_id: orgId, page_size: 5 });
+                } catch (e) { console.warn("Failed to load donations", e); }
+
+                try {
+                    inventoryStats = await inventoryService.getStats(orgId);
+                } catch (e) { console.warn("Failed to load inventory stats (Check router order in Go)", e); }
+
+                try {
+                    trends = await analyticsService.getDonationTrends(orgId); 
+                } catch (e) { console.warn("Failed to load trends", e); }
+
+                const pendingReqs = donationsData.data || (Array.isArray(donationsData) ? donationsData : []);
+                const todaysItems = Array.isArray(trends) && trends.length > 0 ? trends[0].total_items : 0;
 
                 setData({
                     pendingCount: pendingReqs.length,
@@ -70,7 +80,7 @@ export default function StaffDashboard() {
                 });
 
             } catch (error) {
-                console.error(error);
+                console.error("Critical dashboard error:", error);
             } finally {
                 setLoading(false);
             }

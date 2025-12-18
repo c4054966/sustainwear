@@ -11,7 +11,7 @@ interface InventoryItem {
     item_name: string;
     category: string;
     quantity: number;
-    allocated_quantity: number; // Needed to calculate available stock
+    allocated_quantity: number;
     status: string;
     condition: string;
     location: string;
@@ -24,17 +24,15 @@ export default function StaffInventory() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
 
-    // --- NEW: State for Actions & Modals ---
     const [modalOpen, setModalOpen] = useState(false);
-    const [actionType, setActionType] = useState<'create' | 'allocate' | 'distribute' | 'deallocate' | null>(null);
+    const [actionType, setActionType] = useState<'create' | 'edit' | 'allocate' | 'distribute' | 'deallocate' | null>(null);
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
-    // Form Data for all actions
     const [formData, setFormData] = useState({
         quantity: 1,
-        reason: '',     // For Allocation
-        recipient: '',  // For Distribution
-        item_name: '',  // For Manual Create
+        reason: '',     
+        recipient: '',  
+        item_name: '',  
         category: 'Clothing',
         condition: 'Good',
         location: 'Warehouse A'
@@ -70,7 +68,6 @@ export default function StaffInventory() {
                 status: filters.status
             });
 
-            // Ensure we handle the response format correctly
             setItems(response.data || response || []);
         } catch (error) {
             console.error(error);
@@ -79,20 +76,32 @@ export default function StaffInventory() {
         }
     };
 
-    // --- NEW: Action Handlers ---
 
-    const openModal = (type: 'create' | 'allocate' | 'distribute' | 'deallocate', item?: InventoryItem) => {
+    const openModal = (type: 'create' | 'edit' | 'allocate' | 'distribute' | 'deallocate', item?: InventoryItem) => {
         setActionType(type);
         setSelectedItem(item || null);
-        setFormData({
-            quantity: 1,
-            reason: '',
-            recipient: '',
-            item_name: '',
-            category: 'Clothing',
-            condition: 'Good',
-            location: 'Warehouse A'
-        });
+
+        if (type === 'edit' && item) {
+            setFormData({
+                quantity: item.quantity,
+                reason: '',
+                recipient: '',
+                item_name: item.item_name,
+                category: item.category,
+                condition: item.condition,
+                location: item.location
+            });
+        } else {
+            setFormData({
+                quantity: 1,
+                reason: '',
+                recipient: '',
+                item_name: '',
+                category: 'Clothing',
+                condition: 'Good',
+                location: 'Warehouse A'
+            });
+        }
         setModalOpen(true);
     };
 
@@ -104,7 +113,6 @@ export default function StaffInventory() {
             const profile = await userService.getProfile();
 
             if (actionType === 'create') {
-                // Manual Create
                 await inventoryService.create({
                     org_id: profile.org_id,
                     item_name: formData.item_name,
@@ -114,8 +122,16 @@ export default function StaffInventory() {
                     location: formData.location
                 });
             } else if (selectedItem) {
-                // Inventory Movements
-                if (actionType === 'allocate') {
+                if (actionType === 'edit') {
+                    await inventoryService.update(selectedItem.id, {
+                        org_id: profile.org_id,
+                        item_name: formData.item_name,
+                        category: formData.category,
+                        quantity: Number(formData.quantity),
+                        condition: formData.condition,
+                        location: formData.location
+                    });
+                } else if (actionType === 'allocate') {
                     await inventoryService.allocate(selectedItem.id, Number(formData.quantity), formData.reason);
                 } else if (actionType === 'distribute') {
                     await inventoryService.distribute(selectedItem.id, Number(formData.quantity), formData.recipient);
@@ -126,7 +142,7 @@ export default function StaffInventory() {
 
             alert('Action successful!');
             setModalOpen(false);
-            fetchInventory(); // Refresh list to show changes
+            fetchInventory();
         } catch (error: any) {
             alert(error.message || 'Operation failed');
             console.error(error);
@@ -168,7 +184,6 @@ export default function StaffInventory() {
 
                     <div className="action-group">
                         <button className="cta-btn secondary" onClick={() => fetchInventory()}>Refresh</button>
-                        {/* NEW: Manual Create Button */}
                         <button className="cta-btn primary" onClick={() => openModal('create')}>+ Add New Item</button>
                     </div>
                 </div>
@@ -189,7 +204,7 @@ export default function StaffInventory() {
                                     <th>Total</th>
                                     <th>Allocated</th>
                                     <th>Available</th>
-                                    <th>Actions</th> {/* NEW COLUMN */}
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -206,6 +221,12 @@ export default function StaffInventory() {
                                             </td>
                                             <td>
                                                 <div className="action-buttons-row">
+                                                    <button
+                                                        className="btn-text"
+                                                        onClick={() => openModal('edit', item)}
+                                                        title="Edit Details"
+                                                    >Edit</button>
+
                                                     <button
                                                         className="btn-text"
                                                         onClick={() => openModal('allocate', item)}
@@ -237,23 +258,22 @@ export default function StaffInventory() {
                     )}
                 </div>
 
-                {/* --- NEW: THE ACTION MODAL --- */}
                 {modalOpen && (
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h3>
                                     {actionType === 'create' ? 'Add New Item' :
-                                        actionType === 'allocate' ? 'Allocate Stock' :
-                                            actionType === 'distribute' ? 'Distribute Stock' : 'Deallocate Stock'}
+                                        actionType === 'edit' ? 'Edit Item Details' :
+                                            actionType === 'allocate' ? 'Allocate Stock' :
+                                                actionType === 'distribute' ? 'Distribute Stock' : 'Deallocate Stock'}
                                 </h3>
                                 <button className="close-btn" onClick={() => setModalOpen(false)}>×</button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="modal-form">
 
-                                {/* DYNAMIC FIELDS BASED ON ACTION TYPE */}
-                                {actionType === 'create' ? (
+                                {['create', 'edit'].includes(actionType!) ? (
                                     <>
                                         <div className="form-group">
                                             <label>Item Name</label>
@@ -268,13 +288,26 @@ export default function StaffInventory() {
                                                 <option value="Medical">Medical</option>
                                             </select>
                                         </div>
+                                        <div className="form-group">
+                                            <label>Condition</label>
+                                            <select className="form-select" value={formData.condition} onChange={e => setFormData({ ...formData, condition: e.target.value })}>
+                                                <option value="New">New</option>
+                                                <option value="Good">Good</option>
+                                                <option value="Used">Used</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Location</label>
+                                            <input className="form-input"
+                                                value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
+                                        </div>
                                     </>
                                 ) : (
                                     <p className="modal-subtitle">Item: <strong>{selectedItem?.item_name}</strong></p>
                                 )}
 
                                 <div className="form-group">
-                                    <label>Quantity</label>
+                                    <label>Quantity {actionType === 'edit' ? '(Total)' : ''}</label>
                                     <input type="number" min="1" required className="form-input"
                                         value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: parseInt(e.target.value) })} />
                                 </div>
@@ -304,7 +337,6 @@ export default function StaffInventory() {
                     </div>
                 )}
 
-                {/* Pagination Controls (Existing) */}
                 <div className="pagination-controls">
                     <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</button>
                     <span className="page-info">Page {page}</span>

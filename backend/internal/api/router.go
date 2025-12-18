@@ -90,7 +90,7 @@ func NewRouter(cfg *config.Config, db *sql.DB) *mux.Router {
 
 	// ORGANISATION ROUTES
 	protected.HandleFunc("/organisations", organisationHandler.List).Methods("GET")                                                   // LIST ORGANISATIONS
-	protected.HandleFunc("/organisations/{id}", organisationHandler.GetByID).Methods("GET")                                           // GET ORGANISATION BY ID
+	protected.HandleFunc("/organisations/{id}", organisationHandler.GetByID).Methods("GET")                                           // GET ORGAN ISATION BY ID
 	protected.HandleFunc("/organisations/email/{email}", organisationHandler.GetByEmail).Methods("GET")                               // GET ORGANISATION BY EMAIL
 	protected.Handle("/organisations/{id}/stats", requireStaffOrAdmin(http.HandlerFunc(organisationHandler.GetStats))).Methods("GET") // GET ORGANISATION STATS BY ID - REQUIRES CHARITY STAFF OR ADMIN
 	protected.Handle("/organisations", requireAdmin(http.HandlerFunc(organisationHandler.Create))).Methods("POST")                    // CREATE ORGANISATION - REQUIRES ADMIN

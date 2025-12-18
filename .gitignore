@@ -1,11 +1,6 @@
 ﻿node_modules/
 .next/
-<<<<<<< HEAD
 node_modules/
 .next/
 sustainwear.db
 sustainwear.sqbpro
-=======
-sustainwear.db
-sustainwear.sqbpro
->>>>>>> 798cd0924723771c51189fffd502b6b5e63ece3f
