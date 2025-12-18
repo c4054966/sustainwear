@@ -46,12 +46,14 @@ func (h *AnalyticsHandler) GetDonationTrends(w http.ResponseWriter, r *http.Requ
 
 	startDate, err := time.Parse("02-01-2006", startDateStr)
 	if err != nil {
+		log.Printf("ANALYTICS: [GET api/analytics/trends] - Invalid start_date format - %v", err)
 		http.Error(w, "Invalid start_date format (use DD-MM-YYYY)", http.StatusBadRequest)
 		return
 	}
 
 	endDate, err := time.Parse("02-01-2006", endDateStr)
 	if err != nil {
+		log.Printf("ANALYTICS: [GET api/analytics/trends] - Invalid end_date format - %v", err)
 		http.Error(w, "Invalid end_date format (use DD-MM-YYYY)", http.StatusBadRequest)
 		return
 	}

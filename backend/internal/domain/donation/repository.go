@@ -66,7 +66,7 @@ func (r *SQLRepository) GetByID(id uint) (*Donation, error) {
 	return &donation, nil
 }
 
-// LISTS ALL DONATIONS
+// LISTS DONATIONS
 func (r *SQLRepository) List(filters map[string]interface{}) ([]Donation, error) {
 	query := `SELECT id, donor_id, item_name, description, category, size, gender, condition, quantity, images, status, org_id, created_at, updated_at
 	          FROM donations WHERE 1=1`

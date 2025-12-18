@@ -81,7 +81,7 @@ func NewRouter(cfg *config.Config, db *sql.DB) *mux.Router {
 	protected.HandleFunc("/inventory", inventoryHandler.List).Methods("GET")                                                           // LIST INVENTORY ITEMS
 	protected.Handle("/inventory/stats", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.GetStats))).Methods("GET")              // INVENTORY STATS - REQUIRES CHARITY STAFF OR ADMIN
 	protected.HandleFunc("/inventory/{id}", inventoryHandler.GetByID).Methods("GET")                                                   // GET INVENTORY ITEM BY ID
-	protected.Handle("/inventory", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Update))).Methods("POST")                     // MANUAL CREATE INVENTORY ITEM - REQUIRES CHARITY STAFF OR ADMIN
+	protected.Handle("/inventory", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Create))).Methods("POST")                     // MANUAL CREATE INVENTORY ITEM - REQUIRES CHARITY STAFF OR ADMIN
 	protected.Handle("/inventory/{id}", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Update))).Methods("PUT")                 // UPDATE INVENTORY ITEM BY ID - REQUIRES CHARITY STAFF OR ADMIN
 	protected.Handle("/inventory/{id}/allocate", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Allocate))).Methods("POST")     // ALLOCATE INVENTORY BY ID - REQUIRES CHARITY STAFF OR ADMIN
 	protected.Handle("/inventory/{id}/distribute", requireStaffOrAdmin(http.HandlerFunc(inventoryHandler.Distribute))).Methods("POST") // DISTRIBUTE INVENTORY BY ID - REQUIRES CHARITY STAFF OR ADMIN

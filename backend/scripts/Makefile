@@ -4,12 +4,6 @@ build:
 run:
 	go run main.go
 
-init-db:
-	./scripts/init_db.sh
-
-run-db:
-	./scripts/run.sh
-
 clean:
 	rm -rf bin/
 
