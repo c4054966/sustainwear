@@ -1,0 +1,1175 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: SustainWear API V2
+meta:
+  id: wrk_6b3dc4e46ee740fb8aee1c677b39a0b3
+  created: 1765890621847
+  modified: 1765890630263
+  description: ""
+collection:
+  - url: http://localhost:8080/health
+    name: Health Check
+    meta:
+      id: req_e274f3a7f34642c59cd2c9ab1105ef9f
+      created: 1702734960000
+      modified: 1702734960000
+      isPrivate: false
+      description: Check API health status
+      sortKey: -1702734890000
+    method: GET
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - name: 3. Donations
+    meta:
+      id: fld_1c194f3b408b4fb9934f0ffd1bedafa8
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734940000
+      description: Donation management endpoints
+    children:
+      - url: "{{ _.base_url }}/donations/1/reject"
+        name: Reject Donation (Staff/Admin)
+        meta:
+          id: req_2e20c28e696b4f08a8d1fb6dcf91aa83
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Reject donation
+          sortKey: -1702734954000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "reason": "Item does not meet quality standards"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations/1"
+        name: Get Donation by ID (Staff/Admin)
+        meta:
+          id: req_471f43cff9a84ed5aeefe131806bd279
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get specific donation by ID
+          sortKey: -1702734957000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations"
+        name: List All Donations (Staff/Admin)
+        meta:
+          id: req_4b3bec4795df4ba3a252ae37efa15158
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: List all donations with filters
+          sortKey: -1702734958000
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: page_size
+            value: "10"
+          - name: status
+            value: pending
+          - name: category
+            value: Outerwear
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations/1/approve"
+        name: Approve Donation (Staff/Admin)
+        meta:
+          id: req_850f9102fea547af8ba683ac07df1f45
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Approve donation and add to inventory
+          sortKey: -1702734955000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "notes": "Quality items, added to warehouse A"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations"
+        name: Create Donation
+        meta:
+          id: req_baec22f4717f487cbf84f5393e929c3a
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Create a new donation
+          sortKey: -1702734960000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "item_name": "Winter Coat",
+              "description": "Navy blue winter coat with hood",
+              "category": "Outerwear",
+              "size": "L",
+              "gender": "Unisex",
+              "condition": "Good",
+              "quantity": 1,
+              "images": [
+                "abc123.jpg"
+              ],
+              "org_id": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations/1"
+        name: Delete Donation (Admin)
+        meta:
+          id: req_c8fc1bb8d83f4d4d9cd7ebcd98801c3c
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Delete donation permanently
+          sortKey: -1702734953000
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations/1/status"
+        name: Update Donation Status (Staff/Admin)
+        meta:
+          id: req_ea671e36565c41c58627d539b3fafd18
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Update donation status
+          sortKey: -1702734956000
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "status": "approved",
+              "notes": "Item meets quality standards"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/donations/my"
+        name: Get My Donations
+        meta:
+          id: req_fa8a85dfcb954a5193d6c10083b20c89
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get all donations made by current user
+          sortKey: -1702734959000
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: page_size
+            value: "10"
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 4. Inventory
+    meta:
+      id: fld_2488c81439b84452a19795f3a12dfd10
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734930000
+      description: Inventory management endpoints
+    children:
+      - url: "{{ _.base_url }}/inventory/1"
+        name: Update Inventory Item (Staff/Admin)
+        meta:
+          id: req_1454df99008c4c54a229b2462e09940b
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Update inventory item details
+          sortKey: -1702734957000
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "location": "Warehouse B",
+              "status": "available"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/stats"
+        name: Get Inventory Stats (Staff/Admin)
+        meta:
+          id: req_2b52bddc650e4f26a91fff93c5d5c968
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get inventory statistics
+          sortKey: -1702734953000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/1/distribute"
+        name: Distribute Inventory (Staff/Admin)
+        meta:
+          id: req_37fbf205ed6b4857959e7f63f262aadb
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Distribute allocated inventory
+          sortKey: -1702734955000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 2
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory"
+        name: List Inventory Items
+        meta:
+          id: req_4824e8986dc749cebff7f0b43662e999
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: List all inventory items with filters
+          sortKey: -1702734959000
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: page_size
+            value: "10"
+          - name: status
+            value: available
+          - name: category
+            value: Outerwear
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/1"
+        name: Get Inventory Item by ID
+        meta:
+          id: req_6fda158a482b42788afc0df6ac4d7689
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get specific inventory item
+          sortKey: -1702734958000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/1/deallocate"
+        name: Deallocate Inventory (Staff/Admin)
+        meta:
+          id: req_90ef951faf824bd7823c1c9ee889804c
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Return allocated inventory to available
+          sortKey: -1702734954000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/1"
+        name: Delete Inventory Item (Admin)
+        meta:
+          id: req_9ab8147d4fc84097b0a831d9222aee15
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Delete inventory item
+          sortKey: -1702734952000
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory/1/allocate"
+        name: Allocate Inventory (Staff/Admin)
+        meta:
+          id: req_c808a745eece4d7792b18434ce7f48f9
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Allocate inventory for distribution
+          sortKey: -1702734956000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 2
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/inventory"
+        name: Create Inventory Item (Staff/Admin)
+        meta:
+          id: req_cf221261bdce478385fc15519f204554
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Manually create inventory item
+          sortKey: -1702734960000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "item_name": "Winter Coat",
+              "category": "Outerwear",
+              "condition": "good",
+              "quantity": 5,
+              "location": "Warehouse A"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 1. Authentication
+    meta:
+      id: fld_43bbf740a2a342c9bf69741985dd1334
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734960000
+      description: User registration and authentication endpoints
+    children:
+      - url: "{{ _.base_url }}/auth/logout"
+        name: Logout User
+        meta:
+          id: req_1a57974bfcc64d079e07fdece72f82b3
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Logout current user
+          sortKey: -1702734957000
+        method: POST
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/auth/register"
+        name: Register User
+        meta:
+          id: req_80c4f9b875c64626bae0763337c98949
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Register a new user account (donor, charity_staff, or admin)
+          sortKey: -1702734960000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "john.donor@example.com",
+              "password": "SecurePass123!",
+              "full_name": "John Donor",
+              "role": "donor"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/auth/register"
+        name: Register Charity Staff
+        meta:
+          id: req_bd172e4b61e748b5aeb4893717511a8c
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Register a charity staff member with org_id
+          sortKey: -1702734959000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "staff@charity.org",
+              "password": "SecurePass123!",
+              "full_name": "Charity Staff Member",
+              "role": "charity_staff",
+              "org_id": 1
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/auth/refresh"
+        name: Refresh Token
+        meta:
+          id: req_bd9652f7b03a48b68aa72e1ae4f9998d
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Refresh JWT token
+          sortKey: -1702734956000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "token": "{{ _.token }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/auth/login"
+        name: Login User
+        meta:
+          id: req_f2ea7dc5489e41cea1595d90707cc2b0
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Authenticate user and receive JWT token
+          sortKey: -1702734958000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "john.donor@example.com",
+              "password": "SecurePass123!"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 5. Organisations
+    meta:
+      id: fld_8e404d8075834186862539a785a851ef
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734920000
+      description: Organisation management endpoints
+    children:
+      - url: "{{ _.base_url }}/organisations"
+        name: List Organisations
+        meta:
+          id: req_0f6cd0e8435b406badae2124d593ed7d
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: List all organisations with filters
+          sortKey: -1702734959000
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: page_size
+            value: "10"
+          - name: type
+            value: charity
+          - name: status
+            value: active
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations/email/info@redcross.org.uk"
+        name: Get Organisation by Email
+        meta:
+          id: req_530e1c27e9954e68aff1564dd979cdd0
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get organisation by email address
+          sortKey: -1702734957000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations/1"
+        name: Update Organisation (Admin)
+        meta:
+          id: req_7269f625b50548f2aa18fcbbef3738f9
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Update organisation details
+          sortKey: -1702734956000
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "phone": "07711222444",
+              "status": "active"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations/1/stats"
+        name: Get Organisation Stats (Staff/Admin)
+        meta:
+          id: req_768716cd5e8246559503acd7c2c75760
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get organisation statistics
+          sortKey: -1702734955000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations/1"
+        name: Get Organisation by ID
+        meta:
+          id: req_a1592d94aa17445e913e6106476fbebf
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get specific organisation by ID
+          sortKey: -1702734958000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations"
+        name: Create Organisation (Admin)
+        meta:
+          id: req_a258582b79a247178ad40cb66b55678e
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Create a new organisation
+          sortKey: -1702734960000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "British Red Cross",
+              "description": "Leading humanitarian charity",
+              "type": "charity",
+              "email": "info@redcross.org.uk",
+              "phone": "07711222333",
+              "address": "44 Moorfields",
+              "city": "London",
+              "county": "Greater London",
+              "postcode": "EC2Y 9AL",
+              "website": "https://www.redcross.org.uk"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/organisations/1"
+        name: Delete Organisation (Admin)
+        meta:
+          id: req_d1272a7261b4491fa51d42766c350ed8
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Delete organisation
+          sortKey: -1702734954000
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 6. Analytics
+    meta:
+      id: fld_9903357e20b2429f871ad8cad442b446
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734910000
+      description: Analytics and reporting endpoints
+    children:
+      - url: "{{ _.base_url }}/analytics/trends"
+        name: Get Donation Trends (Staff/Admin)
+        meta:
+          id: req_47e8158210314876978a78d323f1b0eb
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get donation trends over time
+          sortKey: -1702734960000
+        method: GET
+        parameters:
+          - name: period
+            value: daily
+          - name: start_date
+            value: 01-12-2025
+          - name: end_date
+            value: 15-12-2025
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/analytics/categories"
+        name: Get Category Breakdown (Staff/Admin)
+        meta:
+          id: req_57394c88759c4523947974f8bf2dd465
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get inventory breakdown by category
+          sortKey: -1702734959000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/analytics/system-overview"
+        name: Get System Overview (Admin)
+        meta:
+          id: req_5bbd6dddb8ba467fbb0e2451dd98a90f
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get system-wide statistics
+          sortKey: -1702734955000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/analytics/org-performance"
+        name: Get Org Performance (Staff/Admin)
+        meta:
+          id: req_6562880c45b44ba0a05000d7206d6210
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get organisation performance metrics
+          sortKey: -1702734956000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/analytics/donor-impact"
+        name: Get My Donor Impact
+        meta:
+          id: req_de8a23294a43407dbdba247b169e1b5f
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get current donor's sustainability impact
+          sortKey: -1702734957000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/analytics/sustainability"
+        name: Get Sustainability Metrics (Staff/Admin)
+        meta:
+          id: req_e7e5cc9299b84374b1f174d44002f935
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get sustainability impact metrics
+          sortKey: -1702734958000
+        method: GET
+        parameters:
+          - name: period
+            value: all_time
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 7. File Uploads
+    meta:
+      id: fld_d33be75c8558489286f3f20c54f69995
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734900000
+      description: File upload endpoints
+    children:
+      - url: "{{ _.base_url }}/uploads/images"
+        name: Upload Images
+        meta:
+          id: req_ef1eb2bc8c0b43daaa5124b1fd257d68
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Upload multiple images (multipart/form-data)
+          sortKey: -1702734960000
+        method: POST
+        body:
+          mimeType: multipart/form-data
+          params:
+            - name: images
+              value: ""
+              description: Select image file(s) to upload
+              fileName: ""
+              type: file
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: 2. Users
+    meta:
+      id: fld_fbb7d82f44b44dd09c2b60f06e7532cc
+      created: 1702734960000
+      modified: 1702734960000
+      sortKey: -1702734950000
+      description: User management endpoints
+    children:
+      - url: "{{ _.base_url }}/users/profile"
+        name: Get My Profile
+        meta:
+          id: req_1d6ce5a7bc024de38b7bf10e9aa8f8e0
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get current user's profile
+          sortKey: -1702734960000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/users/1"
+        name: Delete User (Admin)
+        meta:
+          id: req_792509b7c3af4fa9a0e452da65542c7f
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Delete user by ID (Admin only)
+          sortKey: -1702734956000
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/users/profile"
+        name: Update My Profile
+        meta:
+          id: req_c15198154bb5452aa2f37690cc487c50
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Update current user's profile
+          sortKey: -1702734959000
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "full_name": "John David Donor"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/users"
+        name: List All Users (Admin)
+        meta:
+          id: req_d76714cdcdcb4e4c82f9e45c66e06195
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: List all users with pagination (Admin only)
+          sortKey: -1702734958000
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: page_size
+            value: "10"
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/users/1"
+        name: Get User by ID (Admin)
+        meta:
+          id: req_ea787aebbb5640e098e4cfc4a255011d
+          created: 1702734960000
+          modified: 1702734960000
+          isPrivate: false
+          description: Get specific user by ID (Admin only)
+          sortKey: -1702734957000
+        method: GET
+        headers:
+          - name: Authorization
+            value: Bearer {{ _.token }}
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_ea4ac0452b5b45aeecf3e0c3843dd1bc0ef1056e
+    created: 1765890621887
+    modified: 1765890621887
+environments:
+  name: Base Environment
+  meta:
+    id: env_8a2eeb1fc7ae417599dc8e71424c5647
+    created: 1702734960000
+    modified: 1702734960000
+    isPrivate: false
+  data:
+    base_url: http://localhost:8080/api
+    token: ""
+    user_id: ""
+    org_id: ""
+    donation_id: ""
+    inventory_id: ""
